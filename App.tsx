@@ -273,26 +273,8 @@ function App() {
     { id: 'journal', label: dict.themeJournal },
   ];
 
-  if (!currentUser) {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${styles.app}`}>
-         <div className="text-center mb-8">
-            <PromptsGoLogo className={`w-20 h-20 mx-auto mb-4 ${styles.logoColor}`} />
-            <h1 className="text-3xl font-bold mb-2">{dict.appTitle}</h1>
-            <p className="opacity-70 max-w-sm mx-auto">
-               Sign in to manage your prompts, share with the community, and collect your favorites.
-            </p>
-         </div>
-         <button 
-            onClick={handleLogin}
-            className="flex items-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105"
-         >
-            <User size={20} />
-            Sign in with Google
-         </button>
-      </div>
-    );
-  }
+  // Force global view if not logged in
+  const activeView = currentUser ? currentView : 'global';
 
   return (
     <div 
@@ -316,7 +298,9 @@ function App() {
         <div className="px-4 mb-4">
           <button 
             onClick={handleOpenNew}
+            disabled={!currentUser}
             className={`w-full py-2.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2 
+              ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''}
               ${theme === 'journal' ? 'bg-[#80c63c] hover:bg-[#6fae32] text-white shadow-[#80c63c]/30' : 
                 theme === 'binder' ? 'bg-slate-200 hover:bg-white text-slate-800 shadow-black/20' : 
                 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
@@ -330,8 +314,8 @@ function App() {
           {/* Global Prompts Item */}
           <button
             onClick={() => setCurrentView('global')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              currentView === 'global' ? styles.activeItem : styles.hoverItem
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-2 ${
+              activeView === 'global' ? styles.activeItem : styles.hoverItem
             }`}
           >
             <Globe size={16} className="text-pink-500" />
@@ -341,8 +325,9 @@ function App() {
           {/* GP Collection Item */}
           <button
             onClick={() => setCurrentView('collection')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-4 ${
-              currentView === 'collection' ? styles.activeItem : styles.hoverItem
+            disabled={!currentUser}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-4 ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
+              activeView === 'collection' ? styles.activeItem : styles.hoverItem
             }`}
           >
             <Bookmark size={16} className="text-yellow-500" />
@@ -356,8 +341,9 @@ function App() {
               setCurrentView('local');
               setSelectedCategoryId(null);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              currentView === 'local' && selectedCategoryId === null ? styles.activeItem : styles.hoverItem
+            disabled={!currentUser}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
+              activeView === 'local' && selectedCategoryId === null ? styles.activeItem : styles.hoverItem
             }`}
           >
             <LayoutGrid size={16} />
@@ -366,10 +352,11 @@ function App() {
           </button>
           
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider opacity-50">{dict.categories}</span>
+            <span className={`text-xs font-semibold uppercase tracking-wider opacity-50 ${!currentUser ? 'opacity-30' : ''}`}>{dict.categories}</span>
             <button 
               onClick={() => setIsCategoryManagerOpen(true)}
-              className={`p-1 rounded transition-colors ${styles.hoverItem}`}
+              disabled={!currentUser}
+              className={`p-1 rounded transition-colors ${!currentUser ? 'opacity-30 cursor-not-allowed' : styles.hoverItem}`}
               title={dict.manageCategories}
             >
               <Settings size={12} className="opacity-50" />
@@ -385,8 +372,9 @@ function App() {
                   setCurrentView('local');
                   setSelectedCategoryId(cat.id);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  currentView === 'local' && selectedCategoryId === cat.id ? styles.activeItem : styles.hoverItem
+                disabled={!currentUser}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
+                  activeView === 'local' && selectedCategoryId === cat.id ? styles.activeItem : styles.hoverItem
                 }`}
               >
                 <div className={`p-1 rounded-md text-white ${cat.color} shrink-0`}>
@@ -405,8 +393,9 @@ function App() {
                setCurrentView('local');
                setSelectedCategoryId('uncategorized');
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              currentView === 'local' && selectedCategoryId === 'uncategorized' ? styles.activeItem : styles.hoverItem
+            disabled={!currentUser}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
+              activeView === 'local' && selectedCategoryId === 'uncategorized' ? styles.activeItem : styles.hoverItem
             }`}
           >
             <Tag size={16} />
@@ -527,17 +516,17 @@ function App() {
       {/* Main Content Area */}
       <main 
         className="flex-1 flex flex-col overflow-hidden relative"
-        style={currentView === 'local' ? styles.mainAreaStyle : undefined}
+        style={activeView === 'local' ? styles.mainAreaStyle : undefined}
       >
         
         {/* Render View based on State */}
-        {currentView === 'global' || currentView === 'collection' ? (
+        {activeView === 'global' || activeView === 'collection' ? (
            <GlobalView 
               key={refreshGlobal}
               user={currentUser} 
               dict={dict} 
               theme={theme} 
-              viewMode={currentView === 'collection' ? 'collection' : 'all'}
+              viewMode={activeView === 'collection' ? 'collection' : 'all'}
               collectedIds={collectedGlobalIds}
               onToggleCollect={handleToggleCollect}
            />
