@@ -25,6 +25,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [newComment, setNewComment] = useState('');
   const [userRating, setUserRating] = useState(5);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [hasShared, setHasShared] = useState(false);
 
   const isDark = theme === 'dark' || theme === 'binder';
 
@@ -32,6 +33,13 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const cardBorder = isDark ? 'border-white/10' : 'border-black/10';
   const cardBg = theme === 'dark' ? 'bg-slate-800' : theme === 'binder' ? 'bg-[#2c2c2c] text-white' : theme === 'journal' ? 'bg-white hover:bg-[#fefbf6] border-slate-200 hover:border-[#80c63c] transition-colors' : 'bg-white';
   const textMuted = isDark ? 'text-slate-400' : 'text-slate-500';
+
+  // Check if user has shared this prompt
+  React.useEffect(() => {
+    const sharedPrompts = JSON.parse(localStorage.getItem('promptsgo_shared_prompts') || '{}');
+    const userSharedKey = user?.id || 'guest';
+    setHasShared(sharedPrompts[userSharedKey]?.includes(prompt.id) || false);
+  }, [prompt.id, user?.id]);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -78,6 +86,18 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
       email: `mailto:?subject=${encodeURIComponent(prompt.title)}&body=${encodeURIComponent(text + '\n' + url)}`,
       copy: url
     };
+
+    // Record share action
+    const sharedPrompts = JSON.parse(localStorage.getItem('promptsgo_shared_prompts') || '{}');
+    const userSharedKey = user?.id || 'guest';
+    if (!sharedPrompts[userSharedKey]) {
+      sharedPrompts[userSharedKey] = [];
+    }
+    if (!sharedPrompts[userSharedKey].includes(prompt.id)) {
+      sharedPrompts[userSharedKey].push(prompt.id);
+    }
+    localStorage.setItem('promptsgo_shared_prompts', JSON.stringify(sharedPrompts));
+    setHasShared(true);
 
     if (platform === 'copy') {
       navigator.clipboard.writeText(url);
@@ -205,16 +225,20 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                      <button
                         onClick={() => onToggleCollect(prompt.id)}
                         title={isCollected ? 'Collected' : 'Collect'}
-                        className={`p-2 rounded-lg transition-colors ${
+                        className={`p-2 rounded-lg transition-all duration-200 ${
                            isCollected
-                              ? 'bg-yellow-500/10 text-yellow-600'
-                              : 'hover:bg-black/5 dark:hover:bg-white/5'
+                              ? 'bg-yellow-500/20 text-yellow-600 shadow-md shadow-yellow-500/30 hover:bg-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/40'
+                              : 'hover:bg-black/5 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                         }`}
                      >
-                        <Bookmark size={16} className={isCollected ? "fill-yellow-600" : ""} />
+                        <Bookmark size={16} className={isCollected ? "fill-yellow-600 animate-pulse" : ""} />
                      </button>
                      {prompt.collectCount !== undefined && prompt.collectCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        <span className={`absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold transition-all ${
+                           isCollected
+                              ? 'bg-yellow-500 shadow-md shadow-yellow-500/50'
+                              : 'bg-yellow-400'
+                        }`}>
                            {prompt.collectCount > 99 ? '99+' : prompt.collectCount}
                         </span>
                      )}
@@ -225,10 +249,14 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                <div className="relative">
                   <button
                      onClick={() => setShowShareMenu(!showShareMenu)}
-                     title="Share"
-                     className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
+                     title={hasShared ? 'Shared' : 'Share'}
+                     className={`p-2 rounded-lg transition-colors ${
+                        hasShared
+                           ? 'bg-green-500/10 text-green-600'
+                           : 'hover:bg-blue-500/10 text-blue-600'
+                     }`}
                   >
-                     <Share2 size={16} />
+                     <Share2 size={16} className={hasShared ? "fill-green-600" : ""} />
                   </button>
 
                   {showShareMenu && (
