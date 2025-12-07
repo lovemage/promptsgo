@@ -306,6 +306,19 @@ function App() {
           logoColor: 'text-[#0fd03b]',
           logoBg: '#ffffff'
         };
+      case 'glass':
+        return {
+          app: 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-slate-900',
+          sidebar: 'border-white/30 bg-white/20 backdrop-blur-xl shadow-xl',
+          header: 'border-white/20 bg-white/10 backdrop-blur-md',
+          card: 'bg-white/30 hover:bg-white/40 border-white/40 shadow-lg hover:shadow-xl backdrop-blur-md',
+          activeItem: 'bg-white/40 text-blue-600 shadow-md',
+          hoverItem: 'hover:bg-white/10',
+          input: 'bg-white/30 border-white/40 focus:border-blue-400 focus:ring-blue-200 placeholder-slate-500 backdrop-blur-sm',
+          positiveBox: 'bg-white/20 border-white/30 backdrop-blur-sm',
+          logoColor: 'text-blue-600',
+          logoBg: 'rgba(255, 255, 255, 0.1)'
+        };
       case 'light':
       default:
         return {
@@ -336,6 +349,7 @@ function App() {
     { id: 'dark', label: dict.themeDark },
     { id: 'binder', label: dict.themeBinder },
     { id: 'journal', label: dict.themeJournal },
+    { id: 'glass', label: dict.themeGlass },
   ];
 
   // Force global view if not logged in
