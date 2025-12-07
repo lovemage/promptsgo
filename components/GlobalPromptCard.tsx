@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail, Trash2 } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -15,9 +15,10 @@ interface GlobalPromptCardProps {
   onShare?: (prompt: GlobalPrompt) => void;
   onRefreshLocal?: () => void;
   onEdit?: (prompt: GlobalPrompt) => void;
+  onDelete?: (id: string) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit, onDelete }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -180,6 +181,21 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                      className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
                   >
                      <Edit2 size={16} />
+                  </button>
+               )}
+
+               {/* Delete button - only for author */}
+               {onDelete && user && (prompt.authorId === user.id || prompt.authorId === 'anonymous') && (
+                  <button
+                     onClick={() => {
+                        if (confirm(`Delete "${prompt.title}"?`)) {
+                           onDelete(prompt.id);
+                        }
+                     }}
+                     title="Delete"
+                     className="p-2 rounded-lg transition-colors hover:bg-red-500/10 text-red-600"
+                  >
+                     <Trash2 size={16} />
                   </button>
                )}
 

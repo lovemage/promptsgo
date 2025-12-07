@@ -147,6 +147,17 @@ const updatePromptInSupabase = async (prompt: GlobalPrompt): Promise<void> => {
   if (error) console.error('Error updating prompt:', error);
 };
 
+const deletePromptInSupabase = async (promptId: string): Promise<void> => {
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from('global_prompts')
+    .delete()
+    .eq('id', promptId);
+
+  if (error) console.error('Error deleting prompt:', error);
+};
+
 const addCommentToSupabase = async (promptId: string, comment: Comment): Promise<void> => {
   if (!supabase) return;
 
@@ -223,6 +234,12 @@ const sharePromptToLocal = (prompt: GlobalPrompt): void => {
 const updatePromptInLocal = (prompt: GlobalPrompt): void => {
   const current = getGlobalPromptsFromLocal();
   const updated = current.map(p => p.id === prompt.id ? prompt : p);
+  localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(updated));
+};
+
+const deletePromptInLocal = (promptId: string): void => {
+  const current = getGlobalPromptsFromLocal();
+  const updated = current.filter(p => p.id !== promptId);
   localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(updated));
 };
 
@@ -305,6 +322,14 @@ export const updatePrompt = async (prompt: GlobalPrompt): Promise<void> => {
     await updatePromptInSupabase(prompt);
   } else {
     updatePromptInLocal(prompt);
+  }
+};
+
+export const deletePrompt = async (promptId: string): Promise<void> => {
+  if (isSupabaseConfigured()) {
+    await deletePromptInSupabase(promptId);
+  } else {
+    deletePromptInLocal(promptId);
   }
 };
 

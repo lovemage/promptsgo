@@ -12,6 +12,7 @@ import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './typ
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
 import { loadState, saveState, generateId } from './services/storageService';
 import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
+import * as globalService from './services/globalService';
 import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
 import GlobalView from './components/GlobalView';
@@ -243,6 +244,17 @@ function App() {
     setIsEditingGlobalPrompt(true);
     setEditingGlobalPromptId(globalPrompt.id);
     setIsShareModalOpen(true);
+  };
+
+  const handleDeleteGlobalPrompt = async (promptId: string) => {
+    try {
+      await globalService.deletePrompt(promptId);
+      setRefreshGlobal(prev => prev + 1);
+      alert('✅ 已刪除該卡片');
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      alert('❌ 刪除失敗');
+    }
   };
 
   // --- THEMING ---
@@ -585,6 +597,7 @@ function App() {
               onShareGlobalPrompt={handleShareGlobalPrompt}
               onRefreshLocal={() => setCurrentView('local')}
               onEditGlobalPrompt={handleEditGlobalPrompt}
+              onDeleteGlobalPrompt={handleDeleteGlobalPrompt}
            />
         ) : (
            /* LOCAL VIEW */
