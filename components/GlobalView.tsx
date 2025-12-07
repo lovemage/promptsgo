@@ -79,13 +79,27 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
   const isDark = theme === 'dark' || theme === 'binder';
   const isAdmin = user?.email === 'aistorm0910@gmail.com';
 
+  // Determine background color for top navigation based on theme
+  let topNavBgClass = 'bg-white/80 border-slate-200/50';
+  if (theme === 'dark') {
+    topNavBgClass = 'bg-slate-900/80 border-white/5';
+  } else if (theme === 'binder') {
+    topNavBgClass = 'bg-[#2d2d2d]/80 border-white/5';
+  } else if (theme === 'glass') {
+    topNavBgClass = 'bg-white/20 border-white/20 backdrop-blur-xl';
+  }
+
   return (
     <div className="flex flex-col h-full">
        {/* Top Navigation Bar (Tags & Filters) */}
-       <div className={`sticky top-0 z-10 px-8 py-4 border-b flex flex-col gap-4 backdrop-blur-md ${isDark ? 'bg-slate-900/80 border-white/5' : 'bg-white/80 border-slate-200/50'}`}>
+       <div className={`sticky top-0 z-10 px-8 py-4 border-b flex flex-col gap-4 backdrop-blur-md ${topNavBgClass}`}>
 
           <div className="flex items-center justify-between">
-             <h2 className={`text-xl font-bold ${theme === 'journal' ? 'text-[#2c2c2c]' : 'bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent'}`}>
+             <h2 className={`text-xl font-bold whitespace-nowrap ${
+               theme === 'journal' ? 'text-[#2c2c2c]' :
+               theme === 'binder' ? 'text-slate-200' :
+               'bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent'
+             }`}>
                 {viewMode === 'collection' ? 'GP Collection' : dict.globalPrompts}
              </h2>
 
@@ -96,6 +110,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                    value={activeModel}
                    onChange={e => setActiveModel(e.target.value)}
                    className={`appearance-none pl-8 pr-8 py-1.5 rounded-full text-xs font-medium border outline-none cursor-pointer ${
+                      theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-200 focus:border-[#5d5d5d]' :
                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30 text-white' :
                       'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300 text-slate-700'
                    }`}
@@ -111,12 +126,13 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
              {/* Mini Search for Global */}
              <div className="relative w-48 lg:w-64">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
-                  <input 
+                  <input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder={dict.searchPlaceholder}
                     className={`w-full pl-9 pr-3 py-1.5 rounded-full text-xs border outline-none ${
-                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30' : 
+                       theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-200 placeholder-slate-400 focus:border-[#5d5d5d]' :
+                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30' :
                        theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
                        theme === 'glass' ? 'bg-white/40 border-white/30 text-slate-800 placeholder-slate-500 focus:bg-white/50' :
                        'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
@@ -128,7 +144,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
 
           {/* Tags Filter Row */}
           <div className="flex flex-col gap-2">
-             <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">Tags</div>
+             <div className={`text-xs font-semibold uppercase tracking-wide ${theme === 'binder' ? 'text-slate-400 opacity-70' : 'opacity-60'}`}>Tags</div>
           <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
              {availableTags.map(tag => (
                 <button
@@ -136,8 +152,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                    onClick={() => setActiveTag(tag)}
                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
                       activeTag === tag
-                        ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : theme === 'glass' ? 'bg-white/60 text-slate-900 border-white/40 shadow-lg backdrop-blur-md' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
-                        : `${isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : theme === 'glass' ? 'bg-white/20 border-white/20 hover:bg-white/30 text-slate-700' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
+                        ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : theme === 'binder' ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' : theme === 'glass' ? 'bg-white/60 text-slate-900 border-white/40 shadow-lg backdrop-blur-md' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
+                        : `${theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-300 hover:bg-[#4d4d4d]' : isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : theme === 'glass' ? 'bg-white/20 border-white/20 hover:bg-white/30 text-slate-700' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
                    }`}
                 >
                    {tag}
@@ -149,13 +165,13 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
           {/* Model Filter Row */}
           {activeModel !== 'All' && (
              <div className="flex items-center gap-2 text-xs">
-                <span className="opacity-60">Active Model Filter:</span>
-                <span className={`px-3 py-1 rounded-full font-medium ${theme === 'journal' ? 'bg-[#80c63c]/20 text-[#80c63c]' : 'bg-blue-500/20 text-blue-600'}`}>
+                <span className={`opacity-60 ${theme === 'binder' ? 'text-slate-400' : ''}`}>Active Model Filter:</span>
+                <span className={`px-3 py-1 rounded-full font-medium ${theme === 'journal' ? 'bg-[#80c63c]/20 text-[#80c63c]' : theme === 'binder' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500/20 text-blue-600'}`}>
                    {activeModel}
                 </span>
                 <button
                    onClick={() => setActiveModel('All')}
-                   className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                   className={`text-xs opacity-60 hover:opacity-100 transition-opacity ${theme === 'binder' ? 'text-slate-400' : ''}`}
                 >
                    Clear
                 </button>

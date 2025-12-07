@@ -379,11 +379,6 @@ function App() {
                <span className="font-bold">{dict.appTitle}</span>
             </div>
          </div>
-         {currentUser && (
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-               {currentUser.displayName?.charAt(0) || 'U'}
-            </div>
-         )}
       </div>
 
       {/* Mobile Sidebar Overlay */}
