@@ -43,6 +43,7 @@ export interface GlobalPrompt extends Omit<Prompt, 'categoryIds'> {
   ratingCount: number;
   comments: Comment[];
   views: number;
+  collectCount?: number; // Number of users who collected this
 }
 
 export interface Category {

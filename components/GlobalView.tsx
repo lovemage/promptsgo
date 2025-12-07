@@ -31,7 +31,15 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
   useEffect(() => {
     const loadPrompts = async () => {
       const data = await globalService.getGlobalPrompts();
-      setPrompts(data);
+      // Get global collect counts from localStorage
+      const globalCollectCounts = JSON.parse(localStorage.getItem('promptsgo_global_collect_counts') || '{}');
+
+      // Add collectCount to each prompt
+      const promptsWithCollectCount = data.map(p => ({
+        ...p,
+        collectCount: globalCollectCounts[p.id] || 0
+      }));
+      setPrompts(promptsWithCollectCount);
     };
     loadPrompts();
 

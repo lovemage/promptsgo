@@ -185,9 +185,21 @@ function App() {
   };
 
   const handleToggleCollect = (id: string) => {
-    setCollectedGlobalIds(prev => 
-      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
-    );
+    setCollectedGlobalIds(prev => {
+      const isCollecting = !prev.includes(id);
+      const updated = isCollecting ? [...prev, id] : prev.filter(pid => pid !== id);
+
+      // Update global collect counts
+      const globalCollectCounts = JSON.parse(localStorage.getItem('promptsgo_global_collect_counts') || '{}');
+      if (isCollecting) {
+        globalCollectCounts[id] = (globalCollectCounts[id] || 0) + 1;
+      } else {
+        globalCollectCounts[id] = Math.max(0, (globalCollectCounts[id] || 0) - 1);
+      }
+      localStorage.setItem('promptsgo_global_collect_counts', JSON.stringify(globalCollectCounts));
+
+      return updated;
+    });
   };
 
   const handlePublishSuccess = () => {

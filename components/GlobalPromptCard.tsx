@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2 } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -23,6 +23,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [userRating, setUserRating] = useState(5);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const isDark = theme === 'dark' || theme === 'binder';
 
@@ -63,6 +64,28 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
         ratingCount: newCount
     });
     setNewComment('');
+  };
+
+  const handleShareToSocial = (platform: string) => {
+    const url = window.location.href;
+    const text = `Check out this prompt: ${prompt.title}`;
+
+    const shareUrls: Record<string, string> = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      email: `mailto:?subject=${encodeURIComponent(prompt.title)}&body=${encodeURIComponent(text + '\n' + url)}`,
+      copy: url
+    };
+
+    if (platform === 'copy') {
+      navigator.clipboard.writeText(url);
+      setCopiedId('share-link');
+      setTimeout(() => setCopiedId(null), 2000);
+    } else {
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+    }
+    setShowShareMenu(false);
   };
 
   return (
@@ -148,52 +171,98 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                {new Date(prompt.createdAt).toLocaleDateString()}
             </span>
 
-            <div className="flex gap-2">
+            <div className="flex gap-1 items-center">
                {/* Edit button - only for author */}
                {onEdit && user && (prompt.authorId === user.id || prompt.authorId === 'anonymous') && (
                   <button
                      onClick={() => onEdit(prompt)}
-                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
+                     title="Edit"
+                     className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
                   >
-                     <Edit2 size={14} />
-                     Edit
+                     <Edit2 size={16} />
                   </button>
                )}
 
-               {onShare && (
-                  <button
-                     onClick={() => {
-                        onShare(prompt);
-                        if (onRefreshLocal) onRefreshLocal();
-                     }}
-                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                  >
-                     <Share2 size={14} />
-                     Share
-                  </button>
-               )}
-
+               {/* Collect button */}
                {onToggleCollect && (
-                  <button
-                     onClick={() => onToggleCollect(prompt.id)}
-                     className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                        isCollected
-                           ? 'bg-yellow-500/10 text-yellow-600'
-                           : 'hover:bg-black/5 dark:hover:bg-white/5'
-                     }`}
-                  >
-                     <Bookmark size={14} className={isCollected ? "fill-yellow-600" : ""} />
-                     {isCollected ? 'Collected' : 'Collect'}
-                  </button>
+                  <div className="relative group">
+                     <button
+                        onClick={() => onToggleCollect(prompt.id)}
+                        title={isCollected ? 'Collected' : 'Collect'}
+                        className={`p-2 rounded-lg transition-colors ${
+                           isCollected
+                              ? 'bg-yellow-500/10 text-yellow-600'
+                              : 'hover:bg-black/5 dark:hover:bg-white/5'
+                        }`}
+                     >
+                        <Bookmark size={16} className={isCollected ? "fill-yellow-600" : ""} />
+                     </button>
+                     {prompt.collectCount !== undefined && prompt.collectCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                           {prompt.collectCount > 99 ? '99+' : prompt.collectCount}
+                        </span>
+                     )}
+                  </div>
                )}
 
+               {/* Share to social button */}
+               <div className="relative">
+                  <button
+                     onClick={() => setShowShareMenu(!showShareMenu)}
+                     title="Share"
+                     className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
+                  >
+                     <Share2 size={16} />
+                  </button>
+
+                  {showShareMenu && (
+                     <div className={`absolute right-0 mt-2 w-40 rounded-lg shadow-lg z-50 ${isDark ? 'bg-slate-700' : 'bg-white'} border ${isDark ? 'border-white/10' : 'border-black/10'}`}>
+                        <button
+                           onClick={() => handleShareToSocial('twitter')}
+                           className="w-full text-left px-4 py-2 hover:bg-blue-500/10 text-sm flex items-center gap-2 first:rounded-t-lg"
+                        >
+                           <X size={14} /> Twitter
+                        </button>
+                        <button
+                           onClick={() => handleShareToSocial('facebook')}
+                           className="w-full text-left px-4 py-2 hover:bg-blue-500/10 text-sm flex items-center gap-2"
+                        >
+                           <Send size={14} /> Facebook
+                        </button>
+                        <button
+                           onClick={() => handleShareToSocial('linkedin')}
+                           className="w-full text-left px-4 py-2 hover:bg-blue-500/10 text-sm flex items-center gap-2"
+                        >
+                           <Send size={14} /> LinkedIn
+                        </button>
+                        <button
+                           onClick={() => handleShareToSocial('email')}
+                           className="w-full text-left px-4 py-2 hover:bg-blue-500/10 text-sm flex items-center gap-2"
+                        >
+                           <Mail size={14} /> Email
+                        </button>
+                        <button
+                           onClick={() => handleShareToSocial('copy')}
+                           className="w-full text-left px-4 py-2 hover:bg-blue-500/10 text-sm flex items-center gap-2 last:rounded-b-lg"
+                        >
+                           {copiedId === 'share-link' ? <Check size={14} /> : <Copy size={14} />}
+                           {copiedId === 'share-link' ? 'Copied!' : 'Copy Link'}
+                        </button>
+                     </div>
+                  )}
+               </div>
+
+               {/* Comments button */}
                <button
-                 onClick={() => setShowComments(!showComments)}
-                 className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  onClick={() => setShowComments(!showComments)}
+                  title={`${dict.comments} (${prompt.comments.length})`}
+                  className={`p-2 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                >
-                  <MessageSquare size={14} />
-                  {dict.comments} ({prompt.comments.length})
+                  <MessageSquare size={16} />
                </button>
+
+               {/* Spacer */}
+               <div className="flex-1" />
             </div>
          </div>
 

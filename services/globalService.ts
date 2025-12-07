@@ -53,6 +53,7 @@ const dbToGlobalPrompt = (row: DbGlobalPrompt, comments: Comment[] = []): Global
   ratingCount: row.rating_count,
   views: row.views,
   comments,
+  collectCount: 0, // Initialize to 0, will be updated from localStorage
   createdAt: new Date(row.created_at).getTime(),
   updatedAt: new Date(row.updated_at).getTime(),
 });
