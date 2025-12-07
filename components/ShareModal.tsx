@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
-import { X, Globe, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Globe, Upload, Image as ImageIcon, Loader2, Tag, Plus } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
-import { sharePrompt } from '../services/globalService';
+import { sharePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
+// @ts-ignore
+import modelsRaw from '../MODELS.MD?raw';
 
 interface ShareModalProps {
   isOpen: boolean;

@@ -19,17 +19,25 @@ const notifyListeners = () => {
 
 const ensureUserProfile = async (user: User) => {
   if (!supabase) return;
-  // Upsert into 'users' table to satisfy foreign key constraints
-  const { error } = await supabase.from('users').upsert({
+  
+  const profile = {
     id: user.id,
     email: user.email,
     full_name: user.displayName,
     avatar_url: user.photoURL,
     updated_at: new Date().toISOString(),
-  });
+  };
+
+  // Upsert into 'users' table to satisfy foreign key constraints
+  const { error } = await supabase.from('users').upsert(profile);
   
   if (error) {
       console.warn("Failed to ensure user profile:", error);
+      // If column missing, try minimal insert (just ID) to satisfy Foreign Key
+      if (error.message?.includes("column") || error.code === 'PGRST204') {
+          const { error: minError } = await supabase.from('users').upsert({ id: user.id });
+          if (minError) console.error("Failed minimal profile upsert:", minError);
+      }
   }
 };
 
