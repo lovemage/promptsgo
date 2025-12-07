@@ -155,7 +155,10 @@ const deletePromptInSupabase = async (promptId: string): Promise<void> => {
     .delete()
     .eq('id', promptId);
 
-  if (error) console.error('Error deleting prompt:', error);
+  if (error) {
+    console.error('Error deleting prompt:', error);
+    throw new Error(`Failed to delete prompt: ${error.message}`);
+  }
 };
 
 const addCommentToSupabase = async (promptId: string, comment: Comment): Promise<void> => {
