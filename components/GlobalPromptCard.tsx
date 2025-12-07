@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2 } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -12,9 +12,10 @@ interface GlobalPromptCardProps {
   theme: ThemeId;
   isCollected?: boolean;
   onToggleCollect?: (id: string) => void;
+  onShare?: (prompt: GlobalPrompt) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -144,14 +145,24 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             <span className={`text-[10px] ${textMuted}`}>
                {new Date(prompt.createdAt).toLocaleDateString()}
             </span>
-            
+
             <div className="flex gap-2">
+               {onShare && (
+                  <button
+                     onClick={() => onShare(prompt)}
+                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                  >
+                     <Share2 size={14} />
+                     Share
+                  </button>
+               )}
+
                {onToggleCollect && (
-                  <button 
+                  <button
                      onClick={() => onToggleCollect(prompt.id)}
                      className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                        isCollected 
-                           ? 'bg-yellow-500/10 text-yellow-600' 
+                        isCollected
+                           ? 'bg-yellow-500/10 text-yellow-600'
                            : 'hover:bg-black/5 dark:hover:bg-white/5'
                      }`}
                   >
@@ -160,7 +171,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                   </button>
                )}
 
-               <button 
+               <button
                  onClick={() => setShowComments(!showComments)}
                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                >

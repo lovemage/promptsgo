@@ -30,6 +30,21 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Reset form when prompt changes or modal opens
+  useEffect(() => {
+    if (isOpen && prompt) {
+      setTitle(prompt.title);
+      setDescription(prompt.description || '');
+      setPositive(prompt.positive);
+      setNegative(prompt.negative || '');
+      setNote(prompt.note || '');
+      setTags('');
+      setIsAnonymous(false);
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  }, [isOpen, prompt]);
+
   if (!isOpen) return null;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

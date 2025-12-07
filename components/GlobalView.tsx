@@ -15,12 +15,13 @@ interface GlobalViewProps {
   viewMode?: 'all' | 'collection';
   collectedIds?: string[];
   onToggleCollect?: (id: string) => void;
+  onShareGlobalPrompt?: (prompt: GlobalPrompt) => void;
 }
 
 // Common tags for navigation
 const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
   const [activeModel, setActiveModel] = useState('All');
@@ -134,14 +135,15 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
           ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
                 {filteredPrompts.map(prompt => (
-                   <GlobalPromptCard 
-                      key={prompt.id} 
-                      prompt={prompt} 
+                   <GlobalPromptCard
+                      key={prompt.id}
+                      prompt={prompt}
                       user={user}
                       dict={dict}
                       theme={theme}
                       isCollected={collectedIds.includes(prompt.id)}
                       onToggleCollect={onToggleCollect}
+                      onShare={onShareGlobalPrompt}
                    />
                 ))}
              </div>

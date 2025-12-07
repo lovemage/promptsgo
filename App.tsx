@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
-import { loadState, saveState } from './services/storageService';
+import { loadState, saveState, generateId } from './services/storageService';
 import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
 import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
@@ -190,6 +190,24 @@ function App() {
 
   const handlePublishSuccess = () => {
     setRefreshGlobal(prev => prev + 1);
+  };
+
+  const handleShareGlobalPrompt = (globalPrompt: any) => {
+    // Convert GlobalPrompt to Prompt format for ShareModal
+    const promptToShare: Prompt = {
+      id: generateId(),
+      title: globalPrompt.title,
+      description: globalPrompt.description || '',
+      positive: globalPrompt.positive,
+      negative: globalPrompt.negative || '',
+      note: globalPrompt.note || '',
+      categoryIds: [],
+      modelTags: globalPrompt.modelTags || [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    setSharingPrompt(promptToShare);
+    setIsShareModalOpen(true);
   };
 
   // --- THEMING ---
@@ -521,14 +539,15 @@ function App() {
         
         {/* Render View based on State */}
         {activeView === 'global' || activeView === 'collection' ? (
-           <GlobalView 
+           <GlobalView
               key={refreshGlobal}
-              user={currentUser} 
-              dict={dict} 
-              theme={theme} 
+              user={currentUser}
+              dict={dict}
+              theme={theme}
               viewMode={activeView === 'collection' ? 'collection' : 'all'}
               collectedIds={collectedGlobalIds}
               onToggleCollect={handleToggleCollect}
+              onShareGlobalPrompt={handleShareGlobalPrompt}
            />
         ) : (
            /* LOCAL VIEW */
