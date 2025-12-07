@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Globe, Upload, Image as ImageIcon, Loader2, Tag, Plus } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
-import { sharePrompt, getUniqueModelTags } from '../services/globalService';
+import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
 // @ts-ignore
@@ -16,9 +16,11 @@ interface ShareModalProps {
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  isEditingGlobalPrompt?: boolean;
+  globalPromptId?: string;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme, isEditingGlobalPrompt = false, globalPromptId }) => {
   const [title, setTitle] = useState(prompt.title);
   const [description, setDescription] = useState(prompt.description || '');
   const [positive, setPositive] = useState(prompt.positive);
@@ -86,31 +88,58 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       imageUrl = imagePreview;
     }
 
-    const globalPrompt: GlobalPrompt = {
-      id: generateId(),
-      title,
-      description,
-      positive,
-      negative,
-      note,
-      authorId: isAnonymous ? 'anonymous' : (user?.id || 'guest'),
-      authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
-      authorAvatar: isAnonymous ? null : user?.photoURL,
-      tags: tagList,
-      modelTags: prompt.modelTags || [],
-      image: imageUrl,
-      rating: 0,
-      ratingCount: 0,
-      comments: [],
-      views: 0,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
+    if (isEditingGlobalPrompt && globalPromptId) {
+      // Update existing global prompt
+      const updatedPrompt: GlobalPrompt = {
+        id: globalPromptId,
+        title,
+        description,
+        positive,
+        negative,
+        note,
+        authorId: user?.id || 'guest',
+        authorName: user?.displayName || 'Guest',
+        authorAvatar: user?.photoURL,
+        tags: tagList,
+        modelTags: prompt.modelTags || [],
+        image: imageUrl,
+        rating: 0,
+        ratingCount: 0,
+        comments: [],
+        views: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      await updatePrompt(updatedPrompt);
+      alert('Updated Global Prompt!');
+    } else {
+      // Create new global prompt
+      const globalPrompt: GlobalPrompt = {
+        id: generateId(),
+        title,
+        description,
+        positive,
+        negative,
+        note,
+        authorId: isAnonymous ? 'anonymous' : (user?.id || 'guest'),
+        authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
+        authorAvatar: isAnonymous ? null : user?.photoURL,
+        tags: tagList,
+        modelTags: prompt.modelTags || [],
+        image: imageUrl,
+        rating: 0,
+        ratingCount: 0,
+        comments: [],
+        views: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      await sharePrompt(globalPrompt);
+      alert('Published to Global Prompts!');
+    }
 
-    await sharePrompt(globalPrompt);
     if (onSuccess) onSuccess();
     onClose();
-    alert('Published to Global Prompts!');
   };
 
   // Theme Styles
@@ -252,7 +281,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             {isUploading ? (
               <><Loader2 size={16} className="animate-spin" /> Uploading...</>
             ) : (
-              <><Upload size={16} /> {dict.publish}</>
+              <><Upload size={16} /> {isEditingGlobalPrompt ? 'Update' : dict.publish}</>
             )}
           </button>
         </div>

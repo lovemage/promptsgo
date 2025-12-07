@@ -70,6 +70,8 @@ function App() {
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [sharingPrompt, setSharingPrompt] = useState<Prompt | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isEditingGlobalPrompt, setIsEditingGlobalPrompt] = useState(false);
+  const [editingGlobalPromptId, setEditingGlobalPromptId] = useState<string | null>(null);
 
   // Auth Listener
   useEffect(() => {
@@ -210,6 +212,25 @@ function App() {
     // Add to local prompts
     setPrompts(prev => [newPrompt, ...prev]);
     alert(`✅ "${globalPrompt.title}" 已收藏到你的本地卡片！`);
+  };
+
+  const handleEditGlobalPrompt = (globalPrompt: any) => {
+    // Open ShareModal with the GP data for editing
+    setSharingPrompt({
+      id: globalPrompt.id,
+      title: globalPrompt.title,
+      description: globalPrompt.description || '',
+      positive: globalPrompt.positive,
+      negative: globalPrompt.negative || '',
+      note: globalPrompt.note || '',
+      categoryIds: [],
+      modelTags: globalPrompt.modelTags || [],
+      createdAt: globalPrompt.createdAt,
+      updatedAt: Date.now(),
+    });
+    setIsEditingGlobalPrompt(true);
+    setEditingGlobalPromptId(globalPrompt.id);
+    setIsShareModalOpen(true);
   };
 
   // --- THEMING ---
@@ -551,6 +572,7 @@ function App() {
               onToggleCollect={handleToggleCollect}
               onShareGlobalPrompt={handleShareGlobalPrompt}
               onRefreshLocal={() => setCurrentView('local')}
+              onEditGlobalPrompt={handleEditGlobalPrompt}
            />
         ) : (
            /* LOCAL VIEW */
@@ -743,14 +765,20 @@ function App() {
       />
 
       {sharingPrompt && (
-        <ShareModal 
+        <ShareModal
            isOpen={isShareModalOpen}
-           onClose={() => setIsShareModalOpen(false)}
+           onClose={() => {
+             setIsShareModalOpen(false);
+             setIsEditingGlobalPrompt(false);
+             setEditingGlobalPromptId(null);
+           }}
            onSuccess={handlePublishSuccess}
            prompt={sharingPrompt}
            user={currentUser}
            dict={dict}
            theme={theme}
+           isEditingGlobalPrompt={isEditingGlobalPrompt}
+           globalPromptId={editingGlobalPromptId || undefined}
         />
       )}
 

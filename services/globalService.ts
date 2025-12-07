@@ -125,6 +125,27 @@ const sharePromptToSupabase = async (prompt: GlobalPrompt): Promise<void> => {
   if (error) console.error('Error sharing prompt:', error);
 };
 
+const updatePromptInSupabase = async (prompt: GlobalPrompt): Promise<void> => {
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from('global_prompts')
+    .update({
+      title: prompt.title,
+      description: prompt.description || null,
+      positive: prompt.positive,
+      negative: prompt.negative || null,
+      note: prompt.note || null,
+      tags: prompt.tags,
+      model_tags: prompt.modelTags || [],
+      image: prompt.image || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', prompt.id);
+
+  if (error) console.error('Error updating prompt:', error);
+};
+
 const addCommentToSupabase = async (promptId: string, comment: Comment): Promise<void> => {
   if (!supabase) return;
 
@@ -195,6 +216,12 @@ const getGlobalPromptsFromLocal = (): GlobalPrompt[] => {
 const sharePromptToLocal = (prompt: GlobalPrompt): void => {
   const current = getGlobalPromptsFromLocal();
   const updated = [prompt, ...current];
+  localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(updated));
+};
+
+const updatePromptInLocal = (prompt: GlobalPrompt): void => {
+  const current = getGlobalPromptsFromLocal();
+  const updated = current.map(p => p.id === prompt.id ? prompt : p);
   localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(updated));
 };
 
@@ -269,6 +296,14 @@ export const sharePrompt = async (prompt: GlobalPrompt): Promise<void> => {
     await sharePromptToSupabase(prompt);
   } else {
     sharePromptToLocal(prompt);
+  }
+};
+
+export const updatePrompt = async (prompt: GlobalPrompt): Promise<void> => {
+  if (isSupabaseConfigured()) {
+    await updatePromptInSupabase(prompt);
+  } else {
+    updatePromptInLocal(prompt);
   }
 };
 

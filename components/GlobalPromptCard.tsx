@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2 } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2 } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -14,9 +14,10 @@ interface GlobalPromptCardProps {
   onToggleCollect?: (id: string) => void;
   onShare?: (prompt: GlobalPrompt) => void;
   onRefreshLocal?: () => void;
+  onEdit?: (prompt: GlobalPrompt) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -148,6 +149,17 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             </span>
 
             <div className="flex gap-2">
+               {/* Edit button - only for author */}
+               {onEdit && user && (prompt.authorId === user.id || prompt.authorId === 'anonymous') && (
+                  <button
+                     onClick={() => onEdit(prompt)}
+                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600"
+                  >
+                     <Edit2 size={14} />
+                     Edit
+                  </button>
+               )}
+
                {onShare && (
                   <button
                      onClick={() => {
