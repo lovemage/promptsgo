@@ -357,3 +357,31 @@ export const incrementView = async (promptId: string): Promise<void> => {
     incrementViewInLocal(promptId);
   }
 };
+
+// ========== Banners API ==========
+
+export const getBanners = async (): Promise<{id: string, url: string}[]> => {
+    if (!supabase) return [];
+    const { data, error } = await supabase
+        .from('app_banners')
+        .select('id, image_url')
+        .order('created_at', { ascending: true });
+    
+    if (error) {
+        console.warn("Failed to fetch banners (check if table 'app_banners' exists):", error);
+        return [];
+    }
+    return data.map((b: any) => ({ id: b.id, url: b.image_url }));
+};
+
+export const addBanner = async (url: string): Promise<void> => {
+    if (!supabase) return;
+    const { error } = await supabase.from('app_banners').insert({ image_url: url });
+    if (error) console.error("Failed to add banner:", error);
+};
+
+export const deleteBanner = async (id: string): Promise<void> => {
+    if (!supabase) return;
+    const { error } = await supabase.from('app_banners').delete().eq('id', id);
+    if (error) console.error("Failed to delete banner:", error);
+};

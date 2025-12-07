@@ -6,7 +6,7 @@ import {
   // Icon Imports for mapping
   Palette, Code, PenTool, Camera, Music, Video, Gamepad2, 
   Cpu, Zap, Heart, Star, Smile, Briefcase, Rocket, Coffee,
-  User, LogOut, StickyNote, Share2, Bookmark
+  User, LogOut, StickyNote, Share2, Bookmark, Menu
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
@@ -53,9 +53,10 @@ function App() {
   const [collectedGlobalIds, setCollectedGlobalIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshGlobal, setRefreshGlobal] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Navigation State
-  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection'>('local');
+  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection'>('global');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<LanguageCode>('en');
@@ -361,15 +362,41 @@ function App() {
 
   return (
     <div 
-      className={`min-h-screen flex transition-colors duration-300 ${styles.app}`} 
+      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${styles.app}`} 
       style={{ 
         '--logo-bg': styles.logoBg 
       } as React.CSSProperties}
     >
       
+      {/* Mobile Header */}
+      <div className={`md:hidden flex items-center justify-between p-4 border-b backdrop-blur-md z-40 sticky top-0 ${styles.header}`}>
+         <div className="flex items-center gap-3">
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+               <Menu size={24} />
+            </button>
+            <div className="flex items-center gap-2">
+               <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
+               <span className="font-bold">{dict.appTitle}</span>
+            </div>
+         </div>
+         {currentUser && (
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+               {currentUser.displayName?.charAt(0) || 'U'}
+            </div>
+         )}
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+         <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+            onClick={() => setIsSidebarOpen(false)}
+         />
+      )}
+
       {/* Sidebar */}
-      <aside className={`w-64 flex flex-col border-r backdrop-blur-xl shrink-0 z-20 ${styles.sidebar}`}>
-        <div className="p-6">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r backdrop-blur-xl transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${styles.sidebar}`}>
+        <div className="p-6 hidden md:block">
           <h1 className="text-2xl font-bold flex items-center gap-3 select-none">
             <PromptsGoLogo className={`w-8 h-8 ${styles.logoColor}`} />
             <span className={`${theme === 'light' || theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent' : ''}`}>
@@ -377,8 +404,19 @@ function App() {
             </span>
           </h1>
         </div>
+        
+        {/* Mobile Sidebar Header */}
+        <div className="p-4 md:hidden flex items-center justify-between border-b border-gray-500/10 mb-2">
+            <h1 className="text-lg font-bold flex items-center gap-2">
+               <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
+               {dict.appTitle}
+            </h1>
+            <button onClick={() => setIsSidebarOpen(false)} className="p-2 -mr-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+               <Menu size={20} />
+            </button>
+        </div>
 
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 mt-2 md:mt-0">
           <button 
             onClick={handleOpenNew}
             disabled={!currentUser}
@@ -541,10 +579,11 @@ function App() {
                         key={lang.code}
                         onClick={() => {
                           setLanguage(lang.code);
+                          setIsLangMenuOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-                          language === lang.code 
-                            ? 'text-blue-500 bg-blue-500/10' 
+                          language === lang.code
+                            ? 'text-blue-500 bg-blue-500/10'
                             : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                         }`}
                       >
@@ -576,10 +615,11 @@ function App() {
                         key={t.id}
                         onClick={() => {
                           setTheme(t.id);
+                          setIsThemeMenuOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                           theme === t.id
-                            ? 'text-blue-500 bg-blue-500/10' 
+                            ? 'text-blue-500 bg-blue-500/10'
                             : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                         }`}
                       >

@@ -4,6 +4,7 @@ import { GlobalPrompt, Dictionary, ThemeId, User } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
 import { getUniqueModelTags, getUniqueTags } from '../services/globalService';
+import HeroCarousel from './HeroCarousel';
 import { LayoutGrid, Search, Filter } from 'lucide-react';
 // @ts-ignore
 import modelsRaw from '../MODELS.MD?raw';
@@ -76,6 +77,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
   });
 
   const isDark = theme === 'dark' || theme === 'binder';
+  const isAdmin = user?.email === 'aistorm0910@gmail.com';
 
   return (
     <div className="flex flex-col h-full">
@@ -163,6 +165,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
 
        {/* Content Grid */}
        <div className="flex-1 overflow-y-auto p-8">
+          <HeroCarousel isAdmin={isAdmin} />
+
           {filteredPrompts.length === 0 ? (
              <div className="h-full flex flex-col items-center justify-center opacity-40">
                 <LayoutGrid size={48} strokeWidth={1} />
