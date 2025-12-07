@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { X, Globe, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Globe, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt } from '../services/globalService';
 import { generateId } from '../services/storageService';
+import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -22,24 +23,50 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
   const [note, setNote] = useState(prompt.note || '');
   const [tags, setTags] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Simple size check: if > 1MB, maybe warn? For now, we allow it.
-        setImageBase64(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
   const handlePublish = async () => {
     const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
+
+    let imageUrl: string | undefined;
+
+    // Upload image to Cloudinary if available
+    if (imageFile && isCloudinaryConfigured()) {
+      setIsUploading(true);
+      try {
+        const result = await uploadImage(imageFile);
+        imageUrl = result.secure_url;
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+        alert('Image upload failed. Publishing without image.');
+      }
+      setIsUploading(false);
+    } else if (imagePreview) {
+      // Fallback to base64 if Cloudinary not configured
+      imageUrl = imagePreview;
+    }
 
     const globalPrompt: GlobalPrompt = {
       id: generateId(),
@@ -53,7 +80,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
       authorAvatar: isAnonymous ? null : user?.photoURL,
       tags: tagList,
       modelTags: prompt.modelTags || [],
-      image: imageBase64 || undefined,
+      image: imageUrl,
       rating: 0,
       ratingCount: 0,
       comments: [],
@@ -132,13 +159,13 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
                <div>
                   <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.uploadImage}</label>
                   <div className={`relative w-full h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${
-                      imageBase64 ? 'border-blue-500' : 'border-gray-500/30 hover:border-blue-400'
+                      imagePreview ? 'border-blue-500' : 'border-gray-500/30 hover:border-blue-400'
                   }`}>
-                    {imageBase64 ? (
+                    {imagePreview ? (
                       <>
-                        <img src={imageBase64} alt="Preview" className="w-full h-full object-cover" />
-                        <button 
-                          onClick={() => setImageBase64(null)}
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          onClick={clearImage}
                           className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"
                         >
                           <X size={14} />
@@ -148,9 +175,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
                       <>
                         <ImageIcon size={32} className="opacity-30 mb-2" />
                         <span className="text-xs opacity-50 text-center px-4">{dict.uploadImage}</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
+                        <input
+                          type="file"
+                          accept="image/*"
                           onChange={handleImageUpload}
                           className="absolute inset-0 opacity-0 cursor-pointer"
                         />
@@ -191,18 +218,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-500/10 flex justify-end gap-3">
-          <button 
-            onClick={onClose} 
-            className="px-5 py-2 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+          <button
+            onClick={onClose}
+            disabled={isUploading}
+            className="px-5 py-2 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
           >
             {dict.cancel}
           </button>
-          <button 
+          <button
             onClick={handlePublish}
-            disabled={!title || !positive}
+            disabled={!title || !positive || isUploading}
             className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 transition-all flex items-center gap-2"
           >
-            <Upload size={16} /> {dict.publish}
+            {isUploading ? (
+              <><Loader2 size={16} className="animate-spin" /> Uploading...</>
+            ) : (
+              <><Upload size={16} /> {dict.publish}</>
+            )}
           </button>
         </div>
 
