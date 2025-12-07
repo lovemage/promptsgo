@@ -1,10 +1,10 @@
 import { User } from '../types';
 import { supabase } from './supabaseClient';
 
-// Simple event emitter for auth state
 type AuthListener = (user: User | null) => void;
 let listeners: AuthListener[] = [];
 let currentUser: User | null = null;
+let initialized = false;
 
 const mapSupabaseUser = (u: any): User => ({
   id: u.id,
@@ -12,6 +12,35 @@ const mapSupabaseUser = (u: any): User => ({
   email: u.email || null,
   photoURL: u.user_metadata?.avatar_url || null
 });
+
+const notifyListeners = () => {
+  listeners.forEach(l => l(currentUser));
+};
+
+const updateCurrentUser = (session: any) => {
+    const newUser = session?.user ? mapSupabaseUser(session.user) : null;
+    // Simple check to avoid unnecessary updates/loops if object identity changes but content is same
+    // But for now, just updating is fine.
+    if (JSON.stringify(newUser) !== JSON.stringify(currentUser)) {
+        currentUser = newUser;
+        notifyListeners();
+    }
+};
+
+// Initialize Supabase listener once
+if (supabase && !initialized) {
+    initialized = true;
+    
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        updateCurrentUser(session);
+    });
+
+    // Subscribe to changes
+    supabase.auth.onAuthStateChange((_event, session) => {
+        updateCurrentUser(session);
+    });
+}
 
 export const signInWithGoogle = async (): Promise<void> => {
   if (!supabase) {
@@ -34,40 +63,15 @@ export const signOut = async (): Promise<void> => {
   if (!supabase) return;
   await supabase.auth.signOut();
   currentUser = null;
-  listeners.forEach(l => l(null));
+  notifyListeners();
 };
 
 export const onAuthStateChanged = (callback: AuthListener) => {
   listeners.push(callback);
+  // Send current state immediately
+  callback(currentUser);
   
-  if (supabase) {
-      // Check current session
-      supabase.auth.getSession().then(({ data: { session } }) => {
-          currentUser = session?.user ? mapSupabaseUser(session.user) : null;
-          callback(currentUser);
-      });
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          currentUser = session?.user ? mapSupabaseUser(session.user) : null;
-          // Notify only this listener or all? Ideally all, but existing listeners are already subscribed.
-          // We should rely on subscription to update state, but multiple calls to onAuthStateChanged might create multiple subscriptions if we are not careful.
-          // However, for this simple app, it's fine.
-          // But actually, we need to notify ALL listeners when auth changes, not just this callback.
-          // The subscription callback handles the update.
-          
-          // Better approach: One global subscription.
-          // But to keep it simple and match previous API:
-          listeners.forEach(l => l(currentUser));
-      });
-      
-      return () => {
-          subscription.unsubscribe();
-          listeners = listeners.filter(l => l !== callback);
-      };
-  } else {
-      callback(null);
-      return () => {
-          listeners = listeners.filter(l => l !== callback);
-      };
-  }
+  return () => {
+    listeners = listeners.filter(l => l !== callback);
+  };
 };

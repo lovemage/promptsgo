@@ -51,6 +51,7 @@ function App() {
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [collectedGlobalIds, setCollectedGlobalIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshGlobal, setRefreshGlobal] = useState(0);
   
   // Navigation State
   const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection'>('local');
@@ -185,6 +186,10 @@ function App() {
     setCollectedGlobalIds(prev => 
       prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
     );
+  };
+
+  const handlePublishSuccess = () => {
+    setRefreshGlobal(prev => prev + 1);
   };
 
   // --- THEMING ---
@@ -528,6 +533,7 @@ function App() {
         {/* Render View based on State */}
         {currentView === 'global' || currentView === 'collection' ? (
            <GlobalView 
+              key={refreshGlobal}
               user={currentUser} 
               dict={dict} 
               theme={theme} 
@@ -729,6 +735,7 @@ function App() {
         <ShareModal 
            isOpen={isShareModalOpen}
            onClose={() => setIsShareModalOpen(false)}
+           onSuccess={handlePublishSuccess}
            prompt={sharingPrompt}
            user={currentUser}
            dict={dict}

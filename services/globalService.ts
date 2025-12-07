@@ -105,6 +105,7 @@ const sharePromptToSupabase = async (prompt: GlobalPrompt): Promise<void> => {
   if (!supabase) return;
 
   const { error } = await supabase.from('global_prompts').insert({
+    id: prompt.id,
     title: prompt.title,
     description: prompt.description || null,
     positive: prompt.positive,

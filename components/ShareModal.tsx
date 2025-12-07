@@ -9,13 +9,14 @@ import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryServi
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   prompt: Prompt;
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, dict, theme }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme }) => {
   const [title, setTitle] = useState(prompt.title);
   const [description, setDescription] = useState(prompt.description || '');
   const [positive, setPositive] = useState(prompt.positive);
@@ -90,6 +91,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
     };
 
     await sharePrompt(globalPrompt);
+    if (onSuccess) onSuccess();
     onClose();
     alert('Published to Global Prompts!');
   };
