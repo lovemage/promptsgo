@@ -4,3 +4,11 @@
 - Midjourney v6
 - DALL-E 3
 - Adobe Firefly
+- Veo 3.1
+- Sora 2 Pro
+- Kling 2.6
+- Luma Ray3
+- Wan 2.5
+- Hailuo 2.3
+- LTX-2 Pro
+- Seedance Pro
