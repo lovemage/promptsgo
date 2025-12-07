@@ -47,10 +47,14 @@ export const signInWithGoogle = async (): Promise<void> => {
     alert("Supabase not configured! Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local");
     return;
   }
+  
+  const redirectUrl = window.location.origin;
+  console.log("Initiating Google Login with redirect to:", redirectUrl);
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin
+      redirectTo: redirectUrl
     }
   });
   if (error) {
