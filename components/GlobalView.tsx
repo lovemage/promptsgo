@@ -21,9 +21,6 @@ interface GlobalViewProps {
   onDeleteGlobalPrompt?: (id: string) => void;
 }
 
-// Common tags for navigation
-const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
-
 const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
@@ -131,7 +128,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
           <div className="flex flex-col gap-2">
              <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">Tags</div>
           <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-             {POPULAR_TAGS.map(tag => (
+             {availableTags.map(tag => (
                 <button
                    key={tag}
                    onClick={() => setActiveTag(tag)}

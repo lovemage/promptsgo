@@ -240,7 +240,11 @@ function App() {
       modelTags: globalPrompt.modelTags || [],
       createdAt: globalPrompt.createdAt,
       updatedAt: Date.now(),
-    });
+      // Include image, componentImages, and video for editing
+      image: globalPrompt.image,
+      componentImages: globalPrompt.componentImages,
+      video: globalPrompt.video,
+    } as any);
     setIsEditingGlobalPrompt(true);
     setEditingGlobalPromptId(globalPrompt.id);
     setIsShareModalOpen(true);

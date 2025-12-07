@@ -26,7 +26,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [positive, setPositive] = useState(prompt.positive);
   const [negative, setNegative] = useState(prompt.negative || '');
   const [note, setNote] = useState(prompt.note || '');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState('');
   const [modelTags, setModelTags] = useState<string[]>(prompt.modelTags || []);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -69,7 +70,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setPositive(prompt.positive);
       setNegative(prompt.negative || '');
       setNote(prompt.note || '');
-      setTags('');
+      setTags([]);
+      setCurrentTag('');
       setModelTags(prompt.modelTags || []);
       setIsAnonymous(false);
       setImageFile(null);
@@ -153,8 +155,27 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setVideoPreview(null);
   };
 
+  const handleAddTag = () => {
+    const trimmed = currentTag.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+    }
+    setCurrentTag('');
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(t => t !== tagToRemove));
+  };
+
   const handlePublish = async () => {
-    const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
+    const tagList = tags;
     setIsUploading(true);
 
     let imageUrl = imagePreview || undefined;
@@ -318,11 +339,32 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
               </div>
                <div>
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.tags}</label>
-                <input
-                  value={tags} onChange={e => setTags(e.target.value)}
-                  placeholder={dict.tagsPlaceholder}
-                  className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
-                />
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map(tag => (
+                    <span key={tag} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
+                      theme === 'dark' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-blue-50 text-blue-600 border-blue-100'
+                    }`}>
+                      {tag}
+                      <button onClick={() => removeTag(tag)} className="hover:text-red-500"><X size={10} /></button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                    <input 
+                      value={currentTag} 
+                      onChange={e => setCurrentTag(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      onBlur={handleAddTag}
+                      placeholder="Type tag and press Enter or Comma..."
+                      className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
+                    />
+                    <button 
+                        onClick={handleAddTag}
+                        className={`p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'border-slate-700 hover:bg-slate-700' : 'border-slate-200 hover:bg-slate-50'}`}
+                    >
+                        <Plus size={16} />
+                    </button>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Models</label>
