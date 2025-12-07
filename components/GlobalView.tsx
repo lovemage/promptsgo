@@ -20,10 +20,11 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme }) => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    // In a real app, this would fetch from API
-    // Here we load from our mock service
-    const data = globalService.getGlobalPrompts();
-    setPrompts(data);
+    const loadPrompts = async () => {
+      const data = await globalService.getGlobalPrompts();
+      setPrompts(data);
+    };
+    loadPrompts();
   }, []);
 
   const filteredPrompts = prompts.filter(p => {

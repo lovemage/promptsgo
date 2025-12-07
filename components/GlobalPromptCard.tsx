@@ -32,7 +32,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
 
     const comment: Comment = {
@@ -45,13 +45,12 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
       createdAt: Date.now()
     };
 
-    globalService.addComment(prompt.id, comment);
+    await globalService.addComment(prompt.id, comment);
     // Refresh local state to show new comment immediately (optimistic)
-    // In a real app, we'd re-fetch or use context
     const updatedComments = [comment, ...prompt.comments];
     const newCount = prompt.ratingCount + 1;
     const newAvg = ((prompt.rating * prompt.ratingCount) + userRating) / newCount;
-    
+
     setPrompt({
         ...prompt,
         comments: updatedComments,

@@ -38,9 +38,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
     }
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
-    
+
     const globalPrompt: GlobalPrompt = {
       id: generateId(),
       title,
@@ -62,7 +62,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, prompt, user, 
       updatedAt: Date.now()
     };
 
-    sharePrompt(globalPrompt);
+    await sharePrompt(globalPrompt);
     onClose();
     alert('Published to Global Prompts!');
   };
