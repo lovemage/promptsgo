@@ -53,9 +53,14 @@ export const signInWithGoogle = async (): Promise<void> => {
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: redirectUrl
-    }
+    /* 
+       NOTE: We rely on Supabase "Site URL" configuration by default.
+       If you want to support Vercel Preview URLs, add them to Supabase "Redirect URLs"
+       and uncomment the options block below.
+    */
+    // options: {
+    //   redirectTo: redirectUrl
+    // }
   });
   if (error) {
     console.error("Login failed", error);
