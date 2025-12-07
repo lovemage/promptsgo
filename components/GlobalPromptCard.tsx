@@ -26,6 +26,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [userRating, setUserRating] = useState(5);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [hasShared, setHasShared] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const isDark = theme === 'dark' || theme === 'binder';
 
@@ -113,10 +114,41 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     <div className={`rounded-xl border shadow-sm overflow-hidden flex flex-col ${cardBg} ${cardBorder}`}>
       {/* Image Preview */}
       {prompt.image ? (
-        <div className="w-full h-48 overflow-hidden bg-gray-900 relative group">
-           <img src={prompt.image} alt={prompt.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
+        <>
+          <div
+            onClick={() => setShowImageModal(true)}
+            className="w-full h-48 overflow-hidden bg-gray-900 relative group cursor-pointer"
+          >
+             <img src={prompt.image} alt={prompt.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+
+          {/* Image Modal */}
+          {showImageModal && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+              onClick={() => setShowImageModal(false)}
+            >
+              <div
+                className="relative max-w-4xl max-h-[90vh] animate-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+              >
+                <img
+                  src={prompt.image}
+                  alt={prompt.title}
+                  className="w-full h-full object-contain rounded-lg shadow-2xl"
+                />
+                <button
+                  onClick={() => setShowImageModal(false)}
+                  className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+                  title="Close"
+                >
+                  <X size={32} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
          // No image placeholder
          null
