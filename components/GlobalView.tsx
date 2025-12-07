@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { GlobalPrompt, Dictionary, ThemeId, User } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
+import { getUniqueModelTags } from '../services/globalService';
 import { LayoutGrid, Search, Filter } from 'lucide-react';
 // @ts-ignore
 import modelsRaw from '../MODELS.MD?raw';
@@ -33,13 +34,19 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
     };
     loadPrompts();
 
-    if (modelsRaw) {
-       const models = modelsRaw.split('\n')
-        .map((line: string) => line.trim())
-        .filter((line: string) => line.startsWith('- '))
-        .map((line: string) => line.substring(2));
-       setAvailableModels(models);
-    }
+    const loadTags = async () => {
+        let models: string[] = [];
+        if (modelsRaw) {
+           models = modelsRaw.split('\n')
+            .map((line: string) => line.trim())
+            .filter((line: string) => line.startsWith('- '))
+            .map((line: string) => line.substring(2));
+        }
+        const dbTags = await getUniqueModelTags();
+        const combined = Array.from(new Set([...models, ...dbTags])).sort();
+        setAvailableModels(combined);
+    };
+    loadTags();
   }, []);
 
   const filteredPrompts = prompts.filter(p => {

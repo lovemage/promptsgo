@@ -17,13 +17,33 @@ const notifyListeners = () => {
   listeners.forEach(l => l(currentUser));
 };
 
-const updateCurrentUser = (session: any) => {
+const ensureUserProfile = async (user: User) => {
+  if (!supabase) return;
+  // Upsert into 'users' table to satisfy foreign key constraints
+  const { error } = await supabase.from('users').upsert({
+    id: user.id,
+    email: user.email,
+    full_name: user.displayName,
+    avatar_url: user.photoURL,
+    updated_at: new Date().toISOString(),
+  });
+  
+  if (error) {
+      console.warn("Failed to ensure user profile:", error);
+  }
+};
+
+const updateCurrentUser = async (session: any) => {
     const newUser = session?.user ? mapSupabaseUser(session.user) : null;
     // Simple check to avoid unnecessary updates/loops if object identity changes but content is same
     // But for now, just updating is fine.
     if (JSON.stringify(newUser) !== JSON.stringify(currentUser)) {
         currentUser = newUser;
         notifyListeners();
+        
+        if (currentUser) {
+            await ensureUserProfile(currentUser);
+        }
     }
 };
 

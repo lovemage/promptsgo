@@ -4,6 +4,7 @@ import { X, Sparkles, Star, Palette, Code, PenTool, Camera, Music, Video, Gamepa
 import { Prompt, Category, Dictionary, ThemeId } from '../types';
 import { generateId } from '../services/storageService';
 import { refinePromptWithAI } from '../services/geminiService';
+import { getUniqueModelTags } from '../services/globalService';
 // @ts-ignore
 import modelsRaw from '../MODELS.MD?raw';
 
@@ -37,13 +38,19 @@ const PromptModal: React.FC<PromptModalProps> = ({
   const [isRefining, setIsRefining] = useState(false);
 
   useEffect(() => {
-    if (modelsRaw) {
-       const models = modelsRaw.split('\n')
-        .map((line: string) => line.trim())
-        .filter((line: string) => line.startsWith('- '))
-        .map((line: string) => line.substring(2));
-       setAvailableModels(models);
-    }
+    const loadTags = async () => {
+      let models: string[] = [];
+      if (modelsRaw) {
+         models = modelsRaw.split('\n')
+          .map((line: string) => line.trim())
+          .filter((line: string) => line.startsWith('- '))
+          .map((line: string) => line.substring(2));
+      }
+      const dbTags = await getUniqueModelTags();
+      const combined = Array.from(new Set([...models, ...dbTags])).sort();
+      setAvailableModels(combined);
+    };
+    loadTags();
   }, []);
 
   useEffect(() => {
