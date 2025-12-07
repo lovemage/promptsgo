@@ -27,10 +27,32 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [negative, setNegative] = useState(prompt.negative || '');
   const [note, setNote] = useState(prompt.note || '');
   const [tags, setTags] = useState('');
+  const [modelTags, setModelTags] = useState<string[]>(prompt.modelTags || []);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Load available models
+  useEffect(() => {
+    const loadModels = async () => {
+      // Parse models from MODELS.MD
+      let models: string[] = [];
+      if (modelsRaw) {
+        models = modelsRaw.split('\n')
+          .map((line: string) => line.trim())
+          .filter((line: string) => line.startsWith('- '))
+          .map((line: string) => line.substring(2));
+      }
+
+      // Get model tags from database
+      const dbModelTags = await getUniqueModelTags();
+      const combinedModels = Array.from(new Set([...models, ...dbModelTags])).sort();
+      setAvailableModels(combinedModels);
+    };
+    loadModels();
+  }, []);
 
   // Reset form when prompt changes or modal opens
   useEffect(() => {
@@ -41,6 +63,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setNegative(prompt.negative || '');
       setNote(prompt.note || '');
       setTags('');
+      setModelTags(prompt.modelTags || []);
       setIsAnonymous(false);
       setImageFile(null);
       setImagePreview(null);
@@ -101,7 +124,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         authorName: user?.displayName || 'Guest',
         authorAvatar: user?.photoURL,
         tags: tagList,
-        modelTags: prompt.modelTags || [],
+        modelTags: modelTags,
         image: imageUrl,
         rating: 0,
         ratingCount: 0,
@@ -125,7 +148,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
         authorAvatar: isAnonymous ? null : user?.photoURL,
         tags: tagList,
-        modelTags: prompt.modelTags || [],
+        modelTags: modelTags,
         image: imageUrl,
         rating: 0,
         ratingCount: 0,
@@ -194,11 +217,35 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
               </div>
                <div>
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.tags}</label>
-                <input 
+                <input
                   value={tags} onChange={e => setTags(e.target.value)}
                   placeholder={dict.tagsPlaceholder}
                   className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
                 />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Models</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableModels.map(model => (
+                    <button
+                      key={model}
+                      onClick={() => {
+                        setModelTags(prev =>
+                          prev.includes(model)
+                            ? prev.filter(m => m !== model)
+                            : [...prev, model]
+                        );
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                        modelTags.includes(model)
+                          ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                          : `${inputClass.includes('bg-slate-50') ? 'bg-slate-100 border-slate-200 hover:bg-slate-200' : 'bg-slate-700 border-slate-600 hover:bg-slate-600'}`
+                      }`}
+                    >
+                      {model}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
