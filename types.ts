@@ -116,4 +116,5 @@ export interface AppState {
   selectedCategoryId: string | null;
   language: LanguageCode;
   theme: ThemeId;
+  collectedGlobalIds: string[];
 }

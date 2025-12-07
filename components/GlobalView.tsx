@@ -3,20 +3,27 @@ import React, { useState, useEffect } from 'react';
 import { GlobalPrompt, Dictionary, ThemeId, User } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
-import { LayoutGrid, Search } from 'lucide-react';
+import { LayoutGrid, Search, Filter } from 'lucide-react';
+// @ts-ignore
+import modelsRaw from '../MODELS.MD?raw';
 
 interface GlobalViewProps {
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  viewMode?: 'all' | 'collection';
+  collectedIds?: string[];
+  onToggleCollect?: (id: string) => void;
 }
 
 // Common tags for navigation
 const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
+  const [activeModel, setActiveModel] = useState('All');
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -25,13 +32,24 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme }) => {
       setPrompts(data);
     };
     loadPrompts();
+
+    if (modelsRaw) {
+       const models = modelsRaw.split('\n')
+        .map((line: string) => line.trim())
+        .filter((line: string) => line.startsWith('- '))
+        .map((line: string) => line.substring(2));
+       setAvailableModels(models);
+    }
   }, []);
 
   const filteredPrompts = prompts.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.some(t => t.toLowerCase() === activeTag.toLowerCase());
+    const matchModel = activeModel === 'All' || (p.modelTags && p.modelTags.includes(activeModel));
     const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) || 
                         p.description?.toLowerCase().includes(search.toLowerCase());
-    return matchTag && matchSearch;
+    const matchCollection = viewMode === 'collection' ? collectedIds.includes(p.id) : true;
+    
+    return matchTag && matchSearch && matchModel && matchCollection;
   });
 
   const isDark = theme === 'dark' || theme === 'binder';
@@ -43,21 +61,42 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme }) => {
           
           <div className="flex items-center justify-between">
              <h2 className={`text-xl font-bold ${theme === 'journal' ? 'text-[#2c2c2c]' : 'bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent'}`}>
-                {dict.globalPrompts}
+                {viewMode === 'collection' ? 'GP Collection' : dict.globalPrompts}
              </h2>
-             {/* Mini Search for Global */}
-             <div className="relative w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
-                <input 
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder={dict.searchPlaceholder}
-                  className={`w-full pl-9 pr-3 py-1.5 rounded-full text-xs border outline-none ${
-                     isDark ? 'bg-black/20 border-white/10 focus:border-white/30' : 
-                     theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
-                     'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
-                  }`}
-                />
+             
+             <div className="flex items-center gap-3">
+               {/* Model Filter */}
+               <div className="relative">
+                 <select
+                   value={activeModel}
+                   onChange={e => setActiveModel(e.target.value)}
+                   className={`appearance-none pl-8 pr-8 py-1.5 rounded-full text-xs font-medium border outline-none cursor-pointer ${
+                      isDark ? 'bg-black/20 border-white/10 focus:border-white/30 text-white' : 
+                      'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300 text-slate-700'
+                   }`}
+                 >
+                   <option value="All">All Models</option>
+                   {availableModels.map(model => (
+                     <option key={model} value={model}>{model}</option>
+                   ))}
+                 </select>
+                 <Filter size={12} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+               </div>
+
+               {/* Mini Search for Global */}
+               <div className="relative w-48 lg:w-64">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
+                  <input 
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={dict.searchPlaceholder}
+                    className={`w-full pl-9 pr-3 py-1.5 rounded-full text-xs border outline-none ${
+                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30' : 
+                       theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
+                       'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
+                    }`}
+                  />
+               </div>
              </div>
           </div>
 
@@ -94,6 +133,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme }) => {
                       user={user}
                       dict={dict}
                       theme={theme}
+                      isCollected={collectedIds.includes(prompt.id)}
+                      onToggleCollect={onToggleCollect}
                    />
                 ))}
              </div>

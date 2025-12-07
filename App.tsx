@@ -6,12 +6,12 @@ import {
   // Icon Imports for mapping
   Palette, Code, PenTool, Camera, Music, Video, Gamepad2, 
   Cpu, Zap, Heart, Star, Smile, Briefcase, Rocket, Coffee,
-  User, LogOut, StickyNote, Share2
+  User, LogOut, StickyNote, Share2, Bookmark
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
 import { loadState, saveState } from './services/storageService';
-import { signInWithGoogle, signOut, onAuthStateChanged, mockUser } from './services/authService';
+import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
 import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
 import GlobalView from './components/GlobalView';
@@ -49,10 +49,11 @@ function App() {
 
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [collectedGlobalIds, setCollectedGlobalIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Navigation State
-  const [currentView, setCurrentView] = useState<'local' | 'global'>('local');
+  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection'>('local');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<LanguageCode>('en');
@@ -87,6 +88,7 @@ function App() {
     if (loaded.categories) setCategories(loaded.categories);
     if (loaded.language) setLanguage(loaded.language);
     if (loaded.theme) setTheme(loaded.theme);
+    if (loaded.collectedGlobalIds) setCollectedGlobalIds(loaded.collectedGlobalIds);
     
     setSelectedCategoryId(null);
   }, [currentUser, isAuthLoading]);
@@ -94,8 +96,8 @@ function App() {
   // Save Data
   useEffect(() => {
     if (isAuthLoading) return;
-    saveState({ prompts, categories, language, theme }, currentUser?.id);
-  }, [prompts, categories, language, theme, currentUser, isAuthLoading]);
+    saveState({ prompts, categories, language, theme, collectedGlobalIds }, currentUser?.id);
+  }, [prompts, categories, language, theme, collectedGlobalIds, currentUser, isAuthLoading]);
 
   const dict = TRANSLATIONS[language];
 
@@ -179,6 +181,12 @@ function App() {
     }
   };
 
+  const handleToggleCollect = (id: string) => {
+    setCollectedGlobalIds(prev => 
+      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
+    );
+  };
+
   // --- THEMING ---
   const isDark = theme === 'dark' || theme === 'binder';
 
@@ -260,6 +268,27 @@ function App() {
     { id: 'journal', label: dict.themeJournal },
   ];
 
+  if (!currentUser) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${styles.app}`}>
+         <div className="text-center mb-8">
+            <PromptsGoLogo className={`w-20 h-20 mx-auto mb-4 ${styles.logoColor}`} />
+            <h1 className="text-3xl font-bold mb-2">{dict.appTitle}</h1>
+            <p className="opacity-70 max-w-sm mx-auto">
+               Sign in to manage your prompts, share with the community, and collect your favorites.
+            </p>
+         </div>
+         <button 
+            onClick={handleLogin}
+            className="flex items-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105"
+         >
+            <User size={20} />
+            Sign in with Google
+         </button>
+      </div>
+    );
+  }
+
   return (
     <div 
       className={`min-h-screen flex transition-colors duration-300 ${styles.app}`} 
@@ -296,12 +325,24 @@ function App() {
           {/* Global Prompts Item */}
           <button
             onClick={() => setCurrentView('global')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-2 ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
               currentView === 'global' ? styles.activeItem : styles.hoverItem
             }`}
           >
             <Globe size={16} className="text-pink-500" />
             {dict.globalPrompts}
+          </button>
+          
+          {/* GP Collection Item */}
+          <button
+            onClick={() => setCurrentView('collection')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-4 ${
+              currentView === 'collection' ? styles.activeItem : styles.hoverItem
+            }`}
+          >
+            <Bookmark size={16} className="text-yellow-500" />
+            GP Collection
+            <span className="ml-auto text-xs opacity-50">{collectedGlobalIds.length}</span>
           </button>
 
           {/* My Library (Local Prompts) */}
@@ -485,8 +526,15 @@ function App() {
       >
         
         {/* Render View based on State */}
-        {currentView === 'global' ? (
-           <GlobalView user={currentUser} dict={dict} theme={theme} />
+        {currentView === 'global' || currentView === 'collection' ? (
+           <GlobalView 
+              user={currentUser} 
+              dict={dict} 
+              theme={theme} 
+              viewMode={currentView === 'collection' ? 'collection' : 'all'}
+              collectedIds={collectedGlobalIds}
+              onToggleCollect={handleToggleCollect}
+           />
         ) : (
            /* LOCAL VIEW */
            <>

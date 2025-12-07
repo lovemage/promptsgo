@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -10,9 +10,11 @@ interface GlobalPromptCardProps {
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  isCollected?: boolean;
+  onToggleCollect?: (id: string) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -143,13 +145,29 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                {new Date(prompt.createdAt).toLocaleDateString()}
             </span>
             
-            <button 
-              onClick={() => setShowComments(!showComments)}
-              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
-            >
-               <MessageSquare size={14} />
-               {dict.comments} ({prompt.comments.length})
-            </button>
+            <div className="flex gap-2">
+               {onToggleCollect && (
+                  <button 
+                     onClick={() => onToggleCollect(prompt.id)}
+                     className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                        isCollected 
+                           ? 'bg-yellow-500/10 text-yellow-600' 
+                           : 'hover:bg-black/5 dark:hover:bg-white/5'
+                     }`}
+                  >
+                     <Bookmark size={14} className={isCollected ? "fill-yellow-600" : ""} />
+                     {isCollected ? 'Collected' : 'Collect'}
+                  </button>
+               )}
+
+               <button 
+                 onClick={() => setShowComments(!showComments)}
+                 className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+               >
+                  <MessageSquare size={14} />
+                  {dict.comments} ({prompt.comments.length})
+               </button>
+            </div>
          </div>
 
          {/* Comments Section */}

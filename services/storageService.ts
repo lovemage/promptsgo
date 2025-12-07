@@ -12,12 +12,13 @@ export const loadState = (userId?: string): Partial<AppState> => {
     const serializedState = localStorage.getItem(key);
     if (serializedState === null) {
       // First load: return defaults
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       return {
         prompts: DEFAULT_PROMPTS,
         categories: DEFAULT_CATEGORIES,
-        theme: prefersDark ? 'dark' : 'light',
-        language: 'en'
+        theme: 'journal',
+        language: 'en',
+        collectedGlobalIds: []
       };
     }
     const parsed = JSON.parse(serializedState);
@@ -30,7 +31,11 @@ export const loadState = (userId?: string): Partial<AppState> => {
 
     // Legacy fallback
     if (!parsed.theme) {
-      parsed.theme = 'light';
+      parsed.theme = 'journal';
+    }
+    
+    if (!parsed.collectedGlobalIds) {
+      parsed.collectedGlobalIds = [];
     }
 
     if (!parsed.categories || parsed.categories.length === 0) {
@@ -54,7 +59,8 @@ export const loadState = (userId?: string): Partial<AppState> => {
     return {
       prompts: DEFAULT_PROMPTS,
       categories: DEFAULT_CATEGORIES,
-      theme: 'light'
+      theme: 'journal',
+      collectedGlobalIds: []
     };
   }
 };
@@ -62,8 +68,8 @@ export const loadState = (userId?: string): Partial<AppState> => {
 export const saveState = (state: Partial<AppState>, userId?: string) => {
   try {
     // Only save what we need
-    const { prompts, categories, theme, language } = state;
-    const serializedState = JSON.stringify({ prompts, categories, theme, language });
+    const { prompts, categories, theme, language, collectedGlobalIds } = state;
+    const serializedState = JSON.stringify({ prompts, categories, theme, language, collectedGlobalIds });
     const key = getStorageKey(userId);
     localStorage.setItem(key, serializedState);
   } catch (err) {
