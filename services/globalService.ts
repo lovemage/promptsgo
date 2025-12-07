@@ -223,17 +223,35 @@ const incrementViewInLocal = (promptId: string): void => {
 
 export const getUniqueModelTags = async (): Promise<string[]> => {
   if (!isSupabaseConfigured()) return [];
-  
+
   const { data, error } = await supabase!
     .from('global_prompts')
     .select('model_tags');
-  
+
   if (error || !data) return [];
-  
+
   const tags = new Set<string>();
   data.forEach((row: any) => {
     if (Array.isArray(row.model_tags)) {
         row.model_tags.forEach((tag: string) => tags.add(tag));
+    }
+  });
+  return Array.from(tags).sort();
+};
+
+export const getUniqueTags = async (): Promise<string[]> => {
+  if (!isSupabaseConfigured()) return [];
+
+  const { data, error } = await supabase!
+    .from('global_prompts')
+    .select('tags');
+
+  if (error || !data) return [];
+
+  const tags = new Set<string>();
+  data.forEach((row: any) => {
+    if (Array.isArray(row.tags)) {
+        row.tags.forEach((tag: string) => tags.add(tag));
     }
   });
   return Array.from(tags).sort();

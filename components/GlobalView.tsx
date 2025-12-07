@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { GlobalPrompt, Dictionary, ThemeId, User } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
-import { getUniqueModelTags } from '../services/globalService';
+import { getUniqueModelTags, getUniqueTags } from '../services/globalService';
 import { LayoutGrid, Search, Filter } from 'lucide-react';
 // @ts-ignore
 import modelsRaw from '../MODELS.MD?raw';
@@ -19,14 +19,12 @@ interface GlobalViewProps {
   onRefreshLocal?: () => void;
 }
 
-// Common tags for navigation
-const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
-
 const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
   const [activeModel, setActiveModel] = useState('All');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>(['All']);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -37,6 +35,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
     loadPrompts();
 
     const loadTags = async () => {
+        // Load model tags
         let models: string[] = [];
         if (modelsRaw) {
            models = modelsRaw.split('\n')
@@ -44,9 +43,14 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
             .filter((line: string) => line.startsWith('- '))
             .map((line: string) => line.substring(2));
         }
-        const dbTags = await getUniqueModelTags();
-        const combined = Array.from(new Set([...models, ...dbTags])).sort();
-        setAvailableModels(combined);
+        const dbModelTags = await getUniqueModelTags();
+        const combinedModels = Array.from(new Set([...models, ...dbModelTags])).sort();
+        setAvailableModels(combinedModels);
+
+        // Load regular tags
+        const dbTags = await getUniqueTags();
+        const combinedTags = ['All', ...dbTags];
+        setAvailableTags(combinedTags);
     };
     loadTags();
   }, []);
@@ -110,7 +114,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-             {POPULAR_TAGS.map(tag => (
+             {availableTags.map((tag: string) => (
                 <button
                    key={tag}
                    onClick={() => setActiveTag(tag)}
