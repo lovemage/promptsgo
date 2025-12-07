@@ -193,8 +193,8 @@ function App() {
   };
 
   const handleShareGlobalPrompt = (globalPrompt: any) => {
-    // Convert GlobalPrompt to Prompt format for ShareModal
-    const promptToShare: Prompt = {
+    // Convert GlobalPrompt to Prompt and save to local prompts
+    const newPrompt: Prompt = {
       id: generateId(),
       title: globalPrompt.title,
       description: globalPrompt.description || '',
@@ -206,8 +206,10 @@ function App() {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    setSharingPrompt(promptToShare);
-    setIsShareModalOpen(true);
+
+    // Add to local prompts
+    setPrompts(prev => [newPrompt, ...prev]);
+    alert(`✅ "${globalPrompt.title}" 已收藏到你的本地卡片！`);
   };
 
   // --- THEMING ---
@@ -548,6 +550,7 @@ function App() {
               collectedIds={collectedGlobalIds}
               onToggleCollect={handleToggleCollect}
               onShareGlobalPrompt={handleShareGlobalPrompt}
+              onRefreshLocal={() => setCurrentView('local')}
            />
         ) : (
            /* LOCAL VIEW */

@@ -16,12 +16,13 @@ interface GlobalViewProps {
   collectedIds?: string[];
   onToggleCollect?: (id: string) => void;
   onShareGlobalPrompt?: (prompt: GlobalPrompt) => void;
+  onRefreshLocal?: () => void;
 }
 
 // Common tags for navigation
 const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
   const [activeModel, setActiveModel] = useState('All');
@@ -144,6 +145,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                       isCollected={collectedIds.includes(prompt.id)}
                       onToggleCollect={onToggleCollect}
                       onShare={onShareGlobalPrompt}
+                      onRefreshLocal={onRefreshLocal}
                    />
                 ))}
              </div>

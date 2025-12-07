@@ -13,9 +13,10 @@ interface GlobalPromptCardProps {
   isCollected?: boolean;
   onToggleCollect?: (id: string) => void;
   onShare?: (prompt: GlobalPrompt) => void;
+  onRefreshLocal?: () => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -149,7 +150,10 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             <div className="flex gap-2">
                {onShare && (
                   <button
-                     onClick={() => onShare(prompt)}
+                     onClick={() => {
+                        onShare(prompt);
+                        if (onRefreshLocal) onRefreshLocal();
+                     }}
                      className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                   >
                      <Share2 size={14} />
