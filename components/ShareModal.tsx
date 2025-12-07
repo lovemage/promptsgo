@@ -32,6 +32,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   // Load available models
@@ -66,9 +67,17 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setModelTags(prompt.modelTags || []);
       setIsAnonymous(false);
       setImageFile(null);
-      setImagePreview(null);
+
+      // Load original image if editing
+      if (isEditingGlobalPrompt && (prompt as any).image) {
+        setOriginalImage((prompt as any).image);
+        setImagePreview((prompt as any).image);
+      } else {
+        setOriginalImage(null);
+        setImagePreview(null);
+      }
     }
-  }, [isOpen, prompt]);
+  }, [isOpen, prompt, isEditingGlobalPrompt]);
 
   if (!isOpen) return null;
 
@@ -87,7 +96,12 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
   const clearImage = () => {
     setImageFile(null);
-    setImagePreview(null);
+    // If editing and have original image, restore it; otherwise clear preview
+    if (isEditingGlobalPrompt && originalImage) {
+      setImagePreview(originalImage);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   const handlePublish = async () => {
@@ -106,8 +120,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         alert('Image upload failed. Publishing without image.');
       }
       setIsUploading(false);
-    } else if (imagePreview) {
+    } else if (imageFile && !isCloudinaryConfigured()) {
       // Fallback to base64 if Cloudinary not configured
+      imageUrl = imagePreview || undefined;
+    } else if (isEditingGlobalPrompt && originalImage) {
+      // Use original image if editing and no new image uploaded
+      imageUrl = originalImage;
+    } else if (imagePreview && !imageFile) {
+      // Use preview if it exists and no file was uploaded
       imageUrl = imagePreview;
     }
 
@@ -168,16 +188,20 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   // Theme Styles
   let bgClass = 'bg-white text-slate-800';
   let inputClass = 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500';
-  
+  let modelButtonUnselectedClass = 'bg-slate-100 border-slate-200 text-slate-900 hover:bg-slate-200';
+
   if (theme === 'dark') {
     bgClass = 'bg-slate-800 text-white';
     inputClass = 'bg-slate-900 border-slate-700 text-white placeholder-slate-500 focus:border-blue-500';
+    modelButtonUnselectedClass = 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600';
   } else if (theme === 'binder') {
     bgClass = 'bg-[#1e1e1e] text-slate-200';
     inputClass = 'bg-[#2d2d2d] border-[#3d3d3d] text-slate-200 placeholder-slate-500 focus:border-blue-500';
+    modelButtonUnselectedClass = 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-200 hover:bg-[#4d4d4d]';
   } else if (theme === 'journal') {
     bgClass = 'bg-white text-[#2c2c2c] font-[Poppins]';
     inputClass = 'bg-white border-slate-200 text-[#2c2c2c] placeholder-slate-400 focus:border-[#80c63c]';
+    modelButtonUnselectedClass = 'bg-slate-100 border-slate-200 text-[#2c2c2c] hover:bg-slate-200';
   }
 
   return (
@@ -239,7 +263,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
                         modelTags.includes(model)
                           ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20'
-                          : `${inputClass.includes('bg-slate-50') ? 'bg-slate-100 border-slate-200 hover:bg-slate-200' : 'bg-slate-700 border-slate-600 hover:bg-slate-600'}`
+                          : modelButtonUnselectedClass
                       }`}
                     >
                       {model}
