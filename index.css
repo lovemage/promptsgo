@@ -55,3 +55,13 @@
 .duration-200 {
   animation-duration: 0.2s;
 }
+
+/* Prevent image saving */
+img {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}

@@ -118,8 +118,15 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
           <div
             onClick={() => setShowImageModal(true)}
             className="w-full h-48 overflow-hidden bg-gray-900 relative group cursor-pointer"
+            onContextMenu={(e) => e.preventDefault()}
           >
-             <img src={prompt.image} alt={prompt.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+             <img
+               src={prompt.image}
+               alt={prompt.title}
+               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none select-none"
+               draggable={false}
+               onContextMenu={(e) => e.preventDefault()}
+             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
 
@@ -128,15 +135,19 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             <div
               className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
               onClick={() => setShowImageModal(false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               <div
                 className="relative max-w-4xl max-h-[90vh] animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 <img
                   src={prompt.image}
                   alt={prompt.title}
-                  className="w-full h-full object-contain rounded-lg shadow-2xl"
+                  className="w-full h-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
+                  draggable={false}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <button
                   onClick={() => setShowImageModal(false)}
