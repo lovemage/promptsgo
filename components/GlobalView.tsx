@@ -21,6 +21,9 @@ interface GlobalViewProps {
   onDeleteGlobalPrompt?: (id: string) => void;
 }
 
+// Common tags for navigation
+const POPULAR_TAGS = ['All', 'Portrait', 'Landscape', 'Sci-Fi', 'Fantasy', 'Anime', 'Realistic', 'Cyberpunk', 'Architecture'];
+
 const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
@@ -106,16 +109,17 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                  <Filter size={12} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
                </div>
 
-               {/* Mini Search for Global */}
-               <div className="relative w-48 lg:w-64">
+             {/* Mini Search for Global */}
+             <div className="relative w-48 lg:w-64">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
-                  <input
+                  <input 
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder={dict.searchPlaceholder}
                     className={`w-full pl-9 pr-3 py-1.5 rounded-full text-xs border outline-none ${
-                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30' :
+                       isDark ? 'bg-black/20 border-white/10 focus:border-white/30' : 
                        theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
+                       theme === 'glass' ? 'bg-white/40 border-white/30 text-slate-800 placeholder-slate-500 focus:bg-white/50' :
                        'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
                     }`}
                   />
@@ -126,21 +130,21 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
           {/* Tags Filter Row */}
           <div className="flex flex-col gap-2">
              <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">Tags</div>
-             <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
-                {availableTags.map((tag: string) => (
-                   <button
-                      key={tag}
-                      onClick={() => setActiveTag(tag)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
-                         activeTag === tag
-                           ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
-                           : `${isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
-                      }`}
-                   >
-                      {tag}
-                   </button>
-                ))}
-             </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+             {POPULAR_TAGS.map(tag => (
+                <button
+                   key={tag}
+                   onClick={() => setActiveTag(tag)}
+                   className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
+                      activeTag === tag
+                        ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : theme === 'glass' ? 'bg-white/60 text-slate-900 border-white/40 shadow-lg backdrop-blur-md' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
+                        : `${isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : theme === 'glass' ? 'bg-white/20 border-white/20 hover:bg-white/30 text-slate-700' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
+                   }`}
+                >
+                   {tag}
+                </button>
+             ))}
+          </div>
           </div>
 
           {/* Model Filter Row */}

@@ -1,6 +1,6 @@
 
 export type LanguageCode = 'en' | 'zh-TW' | 'ja';
-export type ThemeId = 'light' | 'dark' | 'binder' | 'journal';
+export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass';
 
 export interface User {
   id: string;
@@ -38,7 +38,9 @@ export interface GlobalPrompt extends Omit<Prompt, 'categoryIds'> {
   authorAvatar?: string | null;
   tags: string[];
   modelTags?: string[];
-  image?: string; // Base64 string
+  image?: string; // Result Image
+  componentImages?: string[]; // Up to 4 component images
+  video?: string; // Optional video
   rating: number; // Average rating
   ratingCount: number;
   comments: Comment[];

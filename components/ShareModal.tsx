@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Globe, Upload, Image as ImageIcon, Loader2, Tag, Plus } from 'lucide-react';
+import { X, Globe, Upload, Image as ImageIcon, Loader2, Tag, Plus, Video as VideoIcon } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
@@ -33,6 +33,12 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
+  
+  const [componentFiles, setComponentFiles] = useState<File[]>([]);
+  const [componentPreviews, setComponentPreviews] = useState<string[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+
   const [isUploading, setIsUploading] = useState(false);
 
   // Load available models
@@ -69,12 +75,22 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setImageFile(null);
 
       // Load original image if editing
-      if (isEditingGlobalPrompt && (prompt as any).image) {
-        setOriginalImage((prompt as any).image);
-        setImagePreview((prompt as any).image);
+      if (isEditingGlobalPrompt) {
+        if ((prompt as any).image) {
+            setOriginalImage((prompt as any).image);
+            setImagePreview((prompt as any).image);
+        }
+        if ((prompt as any).componentImages) {
+            setComponentPreviews((prompt as any).componentImages);
+        }
+        if ((prompt as any).video) {
+            setVideoPreview((prompt as any).video);
+        }
       } else {
         setOriginalImage(null);
         setImagePreview(null);
+        setComponentPreviews([]);
+        setVideoPreview(null);
       }
     }
   }, [isOpen, prompt, isEditingGlobalPrompt]);
@@ -85,18 +101,41 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
-      // Create preview
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleComponentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      if (componentFiles.length + files.length > 4) {
+        alert("Max 4 component images allowed.");
+        return;
+      }
+      setComponentFiles(prev => [...prev, ...files]);
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => setComponentPreviews(prev => [...prev, reader.result as string]);
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVideoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setVideoPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   const clearImage = () => {
     setImageFile(null);
-    // If editing and have original image, restore it; otherwise clear preview
     if (isEditingGlobalPrompt && originalImage) {
       setImagePreview(originalImage);
     } else {
@@ -104,37 +143,85 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     }
   };
 
+  const clearComponentImage = (index: number) => {
+      setComponentFiles(prev => prev.filter((_, i) => i !== index));
+      setComponentPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearVideo = () => {
+      setVideoFile(null);
+      setVideoPreview(null);
+  };
+
   const handlePublish = async () => {
     const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
+    setIsUploading(true);
 
-    let imageUrl: string | undefined;
+    let imageUrl = imagePreview || undefined;
+    let videoUrl = videoPreview || undefined;
+    let componentUrls = [...componentPreviews];
 
-    // Upload image to Cloudinary if available
-    if (imageFile && isCloudinaryConfigured()) {
-      setIsUploading(true);
-      try {
-        const result = await uploadImage(imageFile);
-        imageUrl = result.secure_url;
-      } catch (error) {
-        console.error('Failed to upload image:', error);
-        alert('Image upload failed. Publishing without image.');
-      }
-      setIsUploading(false);
-    } else if (imageFile && !isCloudinaryConfigured()) {
-      // Fallback to base64 if Cloudinary not configured
-      imageUrl = imagePreview || undefined;
-    } else if (isEditingGlobalPrompt && originalImage) {
-      // Use original image if editing and no new image uploaded
-      imageUrl = originalImage;
-    } else if (imagePreview && !imageFile) {
-      // Use preview if it exists and no file was uploaded
-      imageUrl = imagePreview;
+    // Helper for upload
+    const upload = async (file: File) => {
+        if (!isCloudinaryConfigured()) return null; // Fallback handled by preview logic
+        const res = await uploadImage(file);
+        return res.secure_url;
+    };
+
+    try {
+        // Upload Result Image
+        if (imageFile) {
+            const url = await upload(imageFile);
+            if (url) imageUrl = url;
+        }
+
+        // Upload Video
+        if (videoFile) {
+            const url = await upload(videoFile);
+            if (url) videoUrl = url;
+        }
+
+        // Upload Component Images (Replace file placeholders in array? No, handle separately)
+        // We assume previews contain old URLs if editing. New files need upload.
+        // Simplified: Upload new files, then merge with existing URLs (if editing).
+        // Since componentPreviews has mix of base64 and URLs, we need to replace base64 with uploaded URLs.
+        
+        // Better strategy: Clear previews? No.
+        // We iterate componentFiles (new ones). Upload them.
+        // We need to insert them into the correct order? Or just append?
+        // User just adds.
+        
+        // Actually, logic is: existing URLs in componentPreviews should stay. Base64s should be replaced.
+        // But aligning componentFiles with componentPreviews indices is hard if we delete.
+        // Simple approach: Upload all new files. Append to existing URLs (from prompt).
+        
+        const newComponentUrls: string[] = [];
+        if (isCloudinaryConfigured()) {
+            for (const file of componentFiles) {
+                const url = await upload(file);
+                if (url) newComponentUrls.push(url);
+            }
+        }
+        
+        // Mix: If editing, we might have kept old URLs.
+        // If not Cloudinary, we use base64.
+        if (isCloudinaryConfigured()) {
+             // Keep old URLs (filter out base64s from previews)
+             const oldUrls = componentPreviews.filter(p => p.startsWith('http'));
+             componentUrls = [...oldUrls, ...newComponentUrls];
+        } else {
+             // Use previews (base64)
+             componentUrls = componentPreviews;
+        }
+
+    } catch (error) {
+        console.error('Upload failed:', error);
+        alert('Upload failed. Saving with previews/placeholders.');
     }
 
-    if (isEditingGlobalPrompt && globalPromptId) {
-      // Update existing global prompt
-      const updatedPrompt: GlobalPrompt = {
-        id: globalPromptId,
+    setIsUploading(false);
+
+    const promptData = {
         title,
         description,
         positive,
@@ -146,38 +233,24 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         tags: tagList,
         modelTags: modelTags,
         image: imageUrl,
-        rating: 0,
-        ratingCount: 0,
-        comments: [],
-        views: 0,
-        createdAt: Date.now(),
+        componentImages: componentUrls,
+        video: videoUrl,
         updatedAt: Date.now()
-      };
-      await updatePrompt(updatedPrompt);
+    };
+
+    if (isEditingGlobalPrompt && globalPromptId) {
+      await updatePrompt({ ...promptData, id: globalPromptId } as GlobalPrompt);
       alert('Updated Global Prompt!');
     } else {
-      // Create new global prompt
-      const globalPrompt: GlobalPrompt = {
-        id: generateId(),
-        title,
-        description,
-        positive,
-        negative,
-        note,
-        authorId: isAnonymous ? 'anonymous' : (user?.id || 'guest'),
-        authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
-        authorAvatar: isAnonymous ? null : user?.photoURL,
-        tags: tagList,
-        modelTags: modelTags,
-        image: imageUrl,
-        rating: 0,
-        ratingCount: 0,
-        comments: [],
-        views: 0,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      };
-      await sharePrompt(globalPrompt);
+      await sharePrompt({ 
+          ...promptData, 
+          id: generateId(), 
+          rating: 0, 
+          ratingCount: 0, 
+          comments: [], 
+          views: 0, 
+          createdAt: Date.now() 
+      } as GlobalPrompt);
       alert('Published to Global Prompts!');
     }
 
@@ -202,6 +275,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     bgClass = 'bg-white text-[#2c2c2c] font-[Poppins]';
     inputClass = 'bg-white border-slate-200 text-[#2c2c2c] placeholder-slate-400 focus:border-[#80c63c]';
     modelButtonUnselectedClass = 'bg-slate-100 border-slate-200 text-[#2c2c2c] hover:bg-slate-200';
+  } else if (theme === 'glass') {
+    bgClass = 'bg-white/60 text-slate-800 backdrop-blur-xl border border-white/20 shadow-2xl';
+    inputClass = 'bg-white/40 border-white/30 text-slate-900 placeholder-slate-500 focus:border-white/50 focus:bg-white/60';
+    modelButtonUnselectedClass = 'bg-white/30 border-white/20 text-slate-800 hover:bg-white/40';
   }
 
   return (
@@ -274,32 +351,62 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             </div>
 
             <div className="space-y-4">
-               {/* Image Upload */}
+               {/* Result Image */}
                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.uploadImage}</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Result Image (Main)</label>
                   <div className={`relative w-full h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${
                       imagePreview ? 'border-blue-500' : 'border-gray-500/30 hover:border-blue-400'
                   }`}>
                     {imagePreview ? (
                       <>
                         <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                        <button
-                          onClick={clearImage}
-                          className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"
-                        >
-                          <X size={14} />
-                        </button>
+                        <button onClick={clearImage} className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"><X size={14} /></button>
                       </>
                     ) : (
                       <>
                         <ImageIcon size={32} className="opacity-30 mb-2" />
-                        <span className="text-xs opacity-50 text-center px-4">{dict.uploadImage}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
+                        <span className="text-xs opacity-50 text-center px-4">Upload Main Image</span>
+                        <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      </>
+                    )}
+                  </div>
+               </div>
+
+               {/* Component Images */}
+               <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Component Images (Max 4)</label>
+                  <div className="grid grid-cols-4 gap-2">
+                      {componentPreviews.map((preview, idx) => (
+                          <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-500/20 group">
+                              <img src={preview} className="w-full h-full object-cover" alt={`Comp ${idx}`} />
+                              <button onClick={() => clearComponentImage(idx)} className="absolute top-1 right-1 p-0.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
+                          </div>
+                      ))}
+                      {componentPreviews.length < 4 && (
+                          <div className="aspect-square rounded-lg border-2 border-dashed border-gray-500/30 hover:border-blue-400 flex items-center justify-center relative cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                              <Plus size={20} className="opacity-50" />
+                              <input type="file" accept="image/*" multiple onChange={handleComponentUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
+                      )}
+                  </div>
+               </div>
+
+               {/* Video Upload */}
+               <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Video (Max 1)</label>
+                  <div className={`relative w-full h-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${
+                      videoPreview ? 'border-blue-500' : 'border-gray-500/30 hover:border-blue-400'
+                  }`}>
+                    {videoPreview ? (
+                      <>
+                        <video src={videoPreview} className="w-full h-full object-cover" controls />
+                        <button onClick={clearVideo} className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"><X size={14} /></button>
+                      </>
+                    ) : (
+                      <>
+                        <VideoIcon size={24} className="opacity-30 mb-1" />
+                        <span className="text-xs opacity-50 text-center px-4">Upload Video</span>
+                        <input type="file" accept="video/*" onChange={handleVideoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                       </>
                     )}
                   </div>

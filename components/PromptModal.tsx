@@ -136,6 +136,10 @@ const PromptModal: React.FC<PromptModalProps> = ({
     bgClass = 'bg-white text-[#2c2c2c] font-[Poppins]';
     inputClass = 'bg-white border-slate-200 text-[#2c2c2c] placeholder-slate-400 focus:border-[#80c63c]';
     catInactiveClass = 'border-slate-200 bg-transparent opacity-60 hover:opacity-100';
+  } else if (theme === 'glass') {
+    bgClass = 'bg-white/60 text-slate-800 backdrop-blur-xl border border-white/20 shadow-2xl';
+    inputClass = 'bg-white/40 border-white/30 text-slate-900 placeholder-slate-500 focus:border-white/50 focus:bg-white/60';
+    catInactiveClass = 'border-white/30 bg-white/20 hover:bg-white/30';
   }
 
   return (

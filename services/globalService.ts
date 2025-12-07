@@ -17,6 +17,8 @@ interface DbGlobalPrompt {
   tags: string[];
   model_tags: string[];
   image: string | null;
+  component_images: string[];
+  video: string | null;
   rating: number;
   rating_count: number;
   views: number;
@@ -49,6 +51,8 @@ const dbToGlobalPrompt = (row: DbGlobalPrompt, comments: Comment[] = []): Global
   tags: row.tags || [],
   modelTags: row.model_tags || [],
   image: row.image || undefined,
+  componentImages: row.component_images || [],
+  video: row.video || undefined,
   rating: Number(row.rating),
   ratingCount: row.rating_count,
   views: row.views,
@@ -118,6 +122,8 @@ const sharePromptToSupabase = async (prompt: GlobalPrompt): Promise<void> => {
     tags: prompt.tags,
     model_tags: prompt.modelTags || [],
     image: prompt.image || null,
+    component_images: prompt.componentImages || [],
+    video: prompt.video || null,
     rating: 0,
     rating_count: 0,
     views: 0,

@@ -67,6 +67,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
     modalBg = 'bg-white text-[#2c2c2c] font-[Poppins]';
     inputClass = 'bg-white border-slate-200 text-[#2c2c2c] placeholder-slate-400 focus:border-[#80c63c]';
     itemBg = 'border-slate-100 bg-slate-50';
+  } else if (theme === 'glass') {
+    modalBg = 'bg-white/60 text-slate-800 backdrop-blur-xl border border-white/20 shadow-2xl';
+    inputClass = 'bg-white/40 border-white/30 text-slate-900 placeholder-slate-500 focus:border-white/50 focus:bg-white/60';
+    itemBg = 'border-white/20 bg-white/20 hover:bg-white/30';
   }
 
   return (

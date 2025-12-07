@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail, Trash2 } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -26,13 +26,20 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [userRating, setUserRating] = useState(5);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [hasShared, setHasShared] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
 
   const isDark = theme === 'dark' || theme === 'binder';
 
+  const mediaList = [
+      ...(prompt.video ? [{ type: 'video', url: prompt.video }] : []),
+      ...(prompt.componentImages || []).map(url => ({ type: 'image', url })),
+      ...(prompt.image ? [{ type: 'image', url: prompt.image, label: 'Result' }] : [])
+  ];
+
   // Styles based on theme (simplified inheritance)
   const cardBorder = isDark ? 'border-white/10' : 'border-black/10';
-  const cardBg = theme === 'dark' ? 'bg-slate-800' : theme === 'binder' ? 'bg-[#2c2c2c] text-white' : theme === 'journal' ? 'bg-white hover:bg-[#fefbf6] border-slate-200 hover:border-[#80c63c] transition-colors' : 'bg-white';
+  const cardBg = theme === 'dark' ? 'bg-slate-800' : theme === 'binder' ? 'bg-[#2c2c2c] text-white' : theme === 'journal' ? 'bg-white hover:bg-[#fefbf6] border-slate-200 hover:border-[#80c63c] transition-colors' : theme === 'glass' ? 'bg-white/40 backdrop-blur-md border-white/30 hover:bg-white/50 text-slate-800 shadow-sm hover:shadow-md transition-all' : 'bg-white';
   const textMuted = isDark ? 'text-slate-400' : 'text-slate-500';
 
   // Check if user has shared this prompt
@@ -116,7 +123,15 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
       {prompt.image ? (
         <>
           <div
-            onClick={() => setShowImageModal(true)}
+            onClick={() => {
+                // Determine start index. User wants "Result Image" (Main) on card.
+                // But in Gallery, it's the LAST one.
+                // So start at index 0 (first component or video) or last?
+                // User said "Clicking card pops up component images 1-4 finally result image".
+                // This implies starting at the beginning of the sequence.
+                setActiveMediaIndex(0);
+                setShowGallery(true);
+            }}
             className="w-full h-48 overflow-hidden bg-gray-900 relative group cursor-pointer"
             onContextMenu={(e) => e.preventDefault()}
           >
@@ -128,33 +143,97 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                onContextMenu={(e) => e.preventDefault()}
              />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+             
+             {/* Media Count Indicator */}
+             {mediaList.length > 1 && (
+                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                     <ImageIcon size={12} />
+                     {mediaList.length}
+                 </div>
+             )}
           </div>
 
-          {/* Image Modal */}
-          {showImageModal && (
+          {/* Gallery Modal */}
+          {showGallery && mediaList.length > 0 && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-              onClick={() => setShowImageModal(false)}
-              onContextMenu={(e) => e.preventDefault()}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200"
+              onClick={() => setShowGallery(false)}
             >
               <div
-                className="relative max-w-4xl max-h-[90vh] animate-in zoom-in-95 duration-200"
+                className="relative w-full max-w-5xl h-[85vh] flex flex-col items-center justify-center"
                 onClick={e => e.stopPropagation()}
-                onContextMenu={(e) => e.preventDefault()}
               >
-                <img
-                  src={prompt.image}
-                  alt={prompt.title}
-                  className="w-full h-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
-                  draggable={false}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
+                {/* Main Media View */}
+                <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
+                    {mediaList[activeMediaIndex].type === 'video' ? (
+                        <video 
+                            src={mediaList[activeMediaIndex].url} 
+                            controls 
+                            className="max-w-full max-h-full rounded-lg shadow-2xl"
+                        />
+                    ) : (
+                        <img
+                          src={mediaList[activeMediaIndex].url}
+                          alt={prompt.title}
+                          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
+                          draggable={false}
+                          onContextMenu={(e) => e.preventDefault()}
+                        />
+                    )}
+                    
+                    {/* Navigation Arrows */}
+                    {mediaList.length > 1 && (
+                        <>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => (prev - 1 + mediaList.length) % mediaList.length); }}
+                                className="absolute left-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => (prev + 1) % mediaList.length); }}
+                                className="absolute right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+                        </>
+                    )}
+                </div>
+
+                {/* Thumbnails */}
+                {mediaList.length > 1 && (
+                    <div className="mt-4 flex gap-2 overflow-x-auto max-w-full pb-2 px-2">
+                        {mediaList.map((item, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setActiveMediaIndex(idx)}
+                                className={`relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all shrink-0 ${
+                                    idx === activeMediaIndex ? 'border-blue-500 scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                                }`}
+                            >
+                                {item.type === 'video' ? (
+                                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                        <div className="w-0 h-0 border-t-4 border-t-transparent border-l-8 border-l-white border-b-4 border-b-transparent ml-1"></div>
+                                    </div>
+                                ) : (
+                                    <img src={item.url} className="w-full h-full object-cover" alt="" />
+                                )}
+                                {(item as any).label && (
+                                    <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[8px] text-center py-0.5">
+                                        {(item as any).label}
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <button
-                  onClick={() => setShowImageModal(false)}
-                  className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+                  onClick={() => setShowGallery(false)}
+                  className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/20 p-2 rounded-full hover:bg-black/40"
                   title="Close"
                 >
-                  <X size={32} />
+                  <X size={24} />
                 </button>
               </div>
             </div>
