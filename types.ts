@@ -1,6 +1,6 @@
 
 export type LanguageCode = 'en' | 'zh-TW' | 'ja';
-export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass';
+export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass' | 'royal';
 
 export interface User {
   id: string;
@@ -91,6 +91,7 @@ export interface Dictionary {
   themeBinder: string;
   themeJournal: string;
   themeGlass: string;
+  themeRoyal: string;
   categoryName: string;
   categoryColor: string;
   categoryIcon: string;

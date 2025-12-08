@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Globe, Upload, Image as ImageIcon, Loader2, Tag, Plus, Video as VideoIcon } from 'lucide-react';
+import { X, Globe, Upload, Image as ImageIcon, Loader2, Plus, Video as VideoIcon } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
@@ -75,6 +75,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setModelTags(prompt.modelTags || []);
       setIsAnonymous(false);
       setImageFile(null);
+      setComponentFiles([]);
+      setVideoFile(null);
 
       // Load original image if editing
       if (isEditingGlobalPrompt) {
@@ -146,8 +148,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   };
 
   const clearComponentImage = (index: number) => {
-      setComponentFiles(prev => prev.filter((_, i) => i !== index));
-      setComponentPreviews(prev => prev.filter((_, i) => i !== index));
+      // If editing, we need to distinguish between old URLs and new files
+      if (isEditingGlobalPrompt && (prompt as any).componentImages) {
+          const originalCount = (prompt as any).componentImages.length;
+          if (index < originalCount) {
+              // Removing an original image - remove from previews
+              setComponentPreviews(prev => prev.filter((_, i) => i !== index));
+          } else {
+              // Removing a newly uploaded image
+              const newFileIndex = index - originalCount;
+              setComponentFiles(prev => prev.filter((_, i) => i !== newFileIndex));
+              setComponentPreviews(prev => prev.filter((_, i) => i !== index));
+          }
+      } else {
+          // Not editing, just remove both
+          setComponentFiles(prev => prev.filter((_, i) => i !== index));
+          setComponentPreviews(prev => prev.filter((_, i) => i !== index));
+      }
   };
 
   const clearVideo = () => {

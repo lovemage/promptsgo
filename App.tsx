@@ -324,6 +324,19 @@ function App() {
           logoColor: 'text-blue-600',
           logoBg: 'rgba(255, 255, 255, 0.1)'
         };
+      case 'royal':
+        return {
+          app: 'bg-[#FDF6E8] text-slate-800 font-sans',
+          sidebar: 'border-[#456685] bg-[#547A9E] text-white',
+          header: 'border-[#9DBDD7] bg-[#FDF6E8]/90',
+          card: 'bg-white hover:bg-white border-[#9DBDD7] shadow-sm hover:shadow-md',
+          activeItem: 'bg-[#9DBDD7] text-[#456685] font-semibold',
+          hoverItem: 'hover:bg-[#9DBDD7]/20',
+          input: 'bg-white border-[#9DBDD7] focus:border-[#547A9E] focus:ring-[#9DBDD7]/30 placeholder-slate-400',
+          positiveBox: 'bg-white border-[#9DBDD7]',
+          logoColor: 'text-white',
+          logoBg: '#547A9E'
+        };
       case 'light':
       default:
         return {
@@ -355,6 +368,7 @@ function App() {
     { id: 'binder', label: dict.themeBinder },
     { id: 'journal', label: dict.themeJournal },
     { id: 'glass', label: dict.themeGlass },
+    { id: 'royal', label: dict.themeRoyal },
   ];
 
   // Force global view if not logged in
@@ -769,7 +783,7 @@ function App() {
                              <span className="text-[10px] font-bold uppercase tracking-wider opacity-50">{dict.positivePrompt}</span>
                              <button 
                                 onClick={() => handleCopy(prompt.positive, `${prompt.id}-pos`)}
-                                className={`p-1 rounded transition-colors opacity-0 group-hover/code:opacity-100 ${styles.hoverItem}`}
+                                className={`p-1 rounded transition-colors ${styles.hoverItem}`}
                                 title={dict.copy}
                               >
                                 {copiedId === `${prompt.id}-pos` ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
@@ -789,7 +803,7 @@ function App() {
                                <span className="text-[10px] font-bold uppercase tracking-wider opacity-50 text-red-500/70">{dict.negativePrompt}</span>
                                <button 
                                   onClick={() => handleCopy(prompt.negative!, `${prompt.id}-neg`)}
-                                  className="p-1 hover:bg-red-500/10 rounded transition-colors opacity-0 group-hover/code:opacity-100"
+                                  className="p-1 hover:bg-red-500/10 rounded transition-colors"
                                   title={dict.copy}
                                 >
                                   {copiedId === `${prompt.id}-neg` ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-red-500/70" />}
