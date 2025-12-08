@@ -285,23 +285,7 @@ function App() {
     }
   };
 
-  const handleDownloadSitemap = async () => {
-     try {
-        const xml = await globalService.generateSitemapXML();
-        const blob = new Blob([xml], { type: 'application/xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'sitemap.xml';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-     } catch (e) {
-        console.error("Failed to generate sitemap", e);
-        alert("Failed to generate sitemap");
-     }
-  };
+
 
   // --- THEMING ---
   const isDark = theme === 'dark' || theme === 'binder';
@@ -700,7 +684,7 @@ function App() {
               >
                 {dict.termsOfService}
               </button>
-              <button 
+              <button
                 onClick={() => {
                    setCurrentView('privacy');
                    if (window.innerWidth < 768) setIsSidebarOpen(false);
@@ -708,12 +692,6 @@ function App() {
                 className={`text-xs text-left opacity-60 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
               >
                 {dict.privacyPolicy}
-              </button>
-              <button 
-                onClick={handleDownloadSitemap}
-                className={`text-xs text-left opacity-40 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
-              >
-                Sitemap (XML)
               </button>
             </div>
              <div className={`text-[10px] mt-2 opacity-40 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
