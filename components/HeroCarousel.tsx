@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Edit, Save, Loader2, Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Edit, Save, Loader2 } from 'lucide-react';
 import { uploadImage } from '../services/cloudinaryService';
 import * as globalService from '../services/globalService';
 
@@ -58,7 +58,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
   if (banners.length === 0 && !isAdmin) return null;
 
   return (
-    <div className="relative w-full aspect-[16/7] overflow-hidden rounded-2xl shadow-xl group mb-6 bg-gray-100 dark:bg-gray-800">
+    <div className="relative w-full aspect-[16/5] overflow-hidden rounded-2xl shadow-xl group mb-6 bg-gray-100 dark:bg-gray-800">
       {/* Slides */}
       {banners.length > 0 ? (
         banners.map((banner, index) => (
