@@ -30,6 +30,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [commentMediaFile, setCommentMediaFile] = useState<File | null>(null);
   const [commentMediaPreview, setCommentMediaPreview] = useState<string | null>(null);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [commentMediaModal, setCommentMediaModal] = useState<string | null>(null);
   
   // Check if user has already rated/commented (rating > 0)
   const userHasRated = user && prompt.comments.some(c => c.userId === user.id && c.rating > 0);
@@ -544,21 +545,21 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                                word.startsWith('@') ? <span key={i} className="text-blue-500 font-medium">{word} </span> : word + ' '
                             )}
                           </p>
-                          {/* Comment Media */}
+                          {/* Comment Media - Small Thumbnail */}
                           {c.media && (
                              <div className="mt-2">
                                 {c.media.includes('/video/') ? (
                                    <video
                                       src={c.media}
                                       controls
-                                      className="w-full max-h-40 rounded-lg border border-black/10"
+                                      className="max-w-[120px] max-h-[80px] rounded-lg border border-black/10 cursor-pointer"
                                    />
                                 ) : (
                                    <img
                                       src={c.media}
                                       alt="Comment attachment"
-                                      className="w-full max-h-40 object-cover rounded-lg border border-black/10 cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() => window.open(c.media!, '_blank')}
+                                      className="max-w-[120px] max-h-[80px] object-cover rounded-lg border border-black/10 cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => setCommentMediaModal(c.media!)}
                                    />
                                 )}
                              </div>
@@ -655,6 +656,30 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                  <p className={`text-xs text-center italic ${textMuted}`}>{dict.loginToComment}</p>
               )}
            </div>
+         )}
+
+         {/* Comment Media Preview Modal */}
+         {commentMediaModal && (
+            <div
+               className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+               onClick={() => setCommentMediaModal(null)}
+            >
+               <div className="relative max-w-4xl max-h-[90vh] animate-in zoom-in-95 duration-200">
+                  <button
+                     onClick={() => setCommentMediaModal(null)}
+                     className="absolute -top-10 right-0 p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                     aria-label="Close"
+                  >
+                     <X size={24} />
+                  </button>
+                  <img
+                     src={commentMediaModal}
+                     alt="Comment media preview"
+                     className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                     onClick={(e) => e.stopPropagation()}
+                  />
+               </div>
+            </div>
          )}
       </div>
     </div>
