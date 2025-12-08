@@ -159,6 +159,15 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
               className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200"
               onClick={() => setShowGallery(false)}
             >
+              {/* Close Button - Moved outside content container to avoid overlap/z-index issues */}
+              <button
+                  onClick={(e) => { e.stopPropagation(); setShowGallery(false); }}
+                  className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/40 p-2 rounded-full hover:bg-black/60 z-[60]"
+                  title="Close"
+              >
+                  <X size={32} />
+              </button>
+
               <div
                 className="relative w-full max-w-5xl h-[85vh] flex flex-col items-center justify-center"
                 onClick={e => e.stopPropagation()}
@@ -228,13 +237,6 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                     </div>
                 )}
 
-                <button
-                  onClick={() => setShowGallery(false)}
-                  className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/20 p-2 rounded-full hover:bg-black/40"
-                  title="Close"
-                >
-                  <X size={24} />
-                </button>
               </div>
             </div>
           )}

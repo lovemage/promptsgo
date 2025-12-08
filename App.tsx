@@ -426,13 +426,14 @@ function App() {
         </div>
 
         <div className="px-4 mb-4 mt-2 md:mt-0">
-          <button 
+          <button
             onClick={handleOpenNew}
             disabled={!currentUser}
-            className={`w-full py-2.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2 
+            className={`w-full py-2.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2
               ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''}
-              ${theme === 'journal' ? 'bg-[#80c63c] hover:bg-[#6fae32] text-white shadow-[#80c63c]/30' : 
-                theme === 'binder' ? 'bg-slate-200 hover:bg-white text-slate-800 shadow-black/20' : 
+              ${theme === 'journal' ? 'bg-[#80c63c] hover:bg-[#6fae32] text-white shadow-[#80c63c]/30' :
+                theme === 'binder' ? 'bg-slate-200 hover:bg-white text-slate-800 shadow-black/20' :
+                theme === 'glass' ? 'bg-blue-400/60 hover:bg-blue-400/80 text-white shadow-blue-400/30 backdrop-blur-md' :
                 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
           >
             <Plus size={18} /> {dict.newPrompt}
@@ -477,10 +478,13 @@ function App() {
             }`}
           >
             <LayoutGrid size={16} />
-            {dict.myLibrary}
+            <div className="flex-1">
+              <div>{dict.myLibrary}</div>
+              <div className={`text-xs opacity-50 ${theme === 'binder' ? 'text-slate-400' : ''}`}>{dict.localPrompts}</div>
+            </div>
             <span className="ml-auto text-xs opacity-50">{prompts.length}</span>
           </button>
-          
+
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <span className={`text-xs font-semibold uppercase tracking-wider opacity-50 ${!currentUser ? 'opacity-30' : ''}`}>{dict.categories}</span>
             <button 
@@ -617,7 +621,7 @@ function App() {
                    <ChevronsUpDown size={14} className={`opacity-50 transition-transform ${isThemeMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isThemeMenuOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isThemeMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
                    <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1">
                     {themes.map(t => (
                       <button
@@ -691,7 +695,7 @@ function App() {
                     <p className="mt-4 text-lg font-medium">{dict.noPrompts}</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
+                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
                     {filteredPrompts.map(prompt => (
                       <div 
                         key={prompt.id} 

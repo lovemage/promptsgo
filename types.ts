@@ -63,6 +63,7 @@ export interface Dictionary {
   allPrompts: string; // Renamed to "My Library" contextually if needed, or keep distinct
   globalPrompts: string; // New
   myLibrary: string;     // New
+  localPrompts: string;  // New - subtitle for local prompts
   uncategorized: string;
   edit: string;
   delete: string;
