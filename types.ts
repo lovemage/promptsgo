@@ -115,6 +115,11 @@ export interface Dictionary {
     image: string;
     termsOfService: string;
     privacyPolicy: string;
+    webViewWarningTitle: string;
+    webViewWarningMessage: string;
+    webViewWarningMessageGeneric: string;
+    webViewWarningInstructions: string;
+    webViewWarningClose: string;
 }
 
 export interface AppState {

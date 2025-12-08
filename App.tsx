@@ -18,6 +18,8 @@ import CategoryManager from './components/CategoryManager';
 import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
+import WebViewWarning from './components/WebViewWarning';
+import { isWebView, getWebViewType } from './utils/webviewDetector';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -77,6 +79,10 @@ function App() {
   const [editingGlobalPromptId, setEditingGlobalPromptId] = useState<string | null>(null);
   const [highlightPromptId, setHighlightPromptId] = useState<string | null>(null);
 
+  // WebView Detection
+  const [showWebViewWarning, setShowWebViewWarning] = useState(false);
+  const [webViewType, setWebViewType] = useState<string | null>(null);
+
   // Deep Linking & Auth Listener
   useEffect(() => {
     // Check URL params
@@ -85,6 +91,13 @@ function App() {
     if (promptId) {
        setCurrentView('global');
        setHighlightPromptId(promptId);
+    }
+
+    // Check if running in WebView
+    if (isWebView()) {
+      const type = getWebViewType();
+      setWebViewType(type);
+      setShowWebViewWarning(true);
     }
 
     const unsubscribe = onAuthStateChanged((user) => {
@@ -957,6 +970,16 @@ function App() {
         dict={dict}
         theme={theme}
       />
+
+      {/* WebView Warning */}
+      {showWebViewWarning && (
+        <WebViewWarning
+          dict={dict}
+          theme={theme}
+          webViewType={webViewType}
+          onClose={() => setShowWebViewWarning(false)}
+        />
+      )}
     </div>
   );
 }
