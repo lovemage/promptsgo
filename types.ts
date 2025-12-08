@@ -29,6 +29,7 @@ export interface Comment {
   userAvatar?: string | null;
   content: string;
   rating: number; // 1-5, 0 for reply
+  media?: string | null; // Image or video URL
   createdAt: number;
 }
 

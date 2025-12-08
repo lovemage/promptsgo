@@ -27,6 +27,9 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [hasShared, setHasShared] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [commentMediaFile, setCommentMediaFile] = useState<File | null>(null);
+  const [commentMediaPreview, setCommentMediaPreview] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   
   // Check if user has already rated/commented (rating > 0)
   const userHasRated = user && prompt.comments.some(c => c.userId === user.id && c.rating > 0);
@@ -59,44 +62,105 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleCommentMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type (image or video)
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Please upload an image or video file');
+      return;
+    }
+
+    setCommentMediaFile(file);
+
+    // Generate preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCommentMediaPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearCommentMedia = () => {
+    setCommentMediaFile(null);
+    setCommentMediaPreview(null);
+  };
+
+  const uploadMediaToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'promptsgo');
+
+    const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+    const response = await fetch(`https://api.cloudinary.com/v1_1/dtwacse1e/${resourceType}/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Upload failed');
+    const data = await response.json();
+    return data.secure_url;
+  };
+
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
 
-    const isReply = userHasRated;
-    const ratingToSave = isReply ? 0 : userRating;
+    setIsUploadingMedia(true);
 
-    const comment: Comment = {
-      id: generateId(),
-      userId: user.id,
-      userName: user.displayName || 'User',
-      userAvatar: user.photoURL,
-      content: newComment,
-      rating: ratingToSave,
-      createdAt: Date.now()
-    };
+    try {
+      const isReply = userHasRated;
+      const ratingToSave = isReply ? 0 : userRating;
 
-    await globalService.addComment(prompt.id, comment);
-    
-    // Optimistic update
-    const updatedComments = [comment, ...prompt.comments];
-    
-    // Only update rating if it's not a reply
-    let newRating = prompt.rating;
-    let newCount = prompt.ratingCount;
-    
-    if (!isReply) {
-       newCount = prompt.ratingCount + 1;
-       const newAvg = ((prompt.rating * prompt.ratingCount) + ratingToSave) / newCount;
-       newRating = parseFloat(newAvg.toFixed(1));
+      // Upload media if exists
+      let mediaUrl: string | null = null;
+      if (commentMediaFile) {
+        mediaUrl = await uploadMediaToCloudinary(commentMediaFile);
+      }
+
+      const comment: Comment = {
+        id: generateId(),
+        userId: user.id,
+        userName: user.displayName || 'User',
+        userAvatar: user.photoURL,
+        content: newComment,
+        rating: ratingToSave,
+        media: mediaUrl,
+        createdAt: Date.now()
+      };
+
+      await globalService.addComment(prompt.id, comment);
+
+      // Optimistic update
+      const updatedComments = [comment, ...prompt.comments];
+
+      // Only update rating if it's not a reply
+      let newRating = prompt.rating;
+      let newCount = prompt.ratingCount;
+
+      if (!isReply) {
+         newCount = prompt.ratingCount + 1;
+         const newAvg = ((prompt.rating * prompt.ratingCount) + ratingToSave) / newCount;
+         newRating = parseFloat(newAvg.toFixed(1));
+      }
+
+      setPrompt({
+          ...prompt,
+          comments: updatedComments,
+          rating: newRating,
+          ratingCount: newCount
+      });
+      setNewComment('');
+      clearCommentMedia();
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert('Failed to submit comment. Please try again.');
+    } finally {
+      setIsUploadingMedia(false);
     }
-
-    setPrompt({
-        ...prompt,
-        comments: updatedComments,
-        rating: newRating,
-        ratingCount: newCount
-    });
-    setNewComment('');
   };
 
   const handleMention = (name: string) => {
@@ -476,10 +540,29 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                              )}
                           </div>
                           <p className="opacity-70 leading-relaxed whitespace-pre-wrap">
-                            {c.content.split(' ').map((word, i) => 
+                            {c.content.split(' ').map((word, i) =>
                                word.startsWith('@') ? <span key={i} className="text-blue-500 font-medium">{word} </span> : word + ' '
                             )}
                           </p>
+                          {/* Comment Media */}
+                          {c.media && (
+                             <div className="mt-2">
+                                {c.media.includes('/video/') ? (
+                                   <video
+                                      src={c.media}
+                                      controls
+                                      className="w-full max-h-40 rounded-lg border border-black/10"
+                                   />
+                                ) : (
+                                   <img
+                                      src={c.media}
+                                      alt="Comment attachment"
+                                      className="w-full max-h-40 object-cover rounded-lg border border-black/10 cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => window.open(c.media!, '_blank')}
+                                   />
+                                )}
+                             </div>
+                          )}
                        </div>
                     ))
                  )}
@@ -514,19 +597,57 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                         </div>
                     )}
 
+                    {/* Media Preview */}
+                    {commentMediaPreview && (
+                       <div className="relative inline-block">
+                          {commentMediaFile?.type.startsWith('video/') ? (
+                             <video
+                                src={commentMediaPreview}
+                                className="max-h-20 rounded border border-black/10"
+                             />
+                          ) : (
+                             <img
+                                src={commentMediaPreview}
+                                alt="Preview"
+                                className="max-h-20 rounded border border-black/10"
+                             />
+                          )}
+                          <button
+                             onClick={clearCommentMedia}
+                             className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                             <X size={12} />
+                          </button>
+                       </div>
+                    )}
+
                     <div className="flex gap-2">
-                       <input 
+                       <input
                           value={newComment}
                           onChange={e => setNewComment(e.target.value)}
                           placeholder={userHasRated ? "Reply to discussion..." : dict.writeComment}
                           className={`flex-1 px-3 py-1.5 rounded text-xs border outline-none ${isDark ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'}`}
                        />
-                       <button 
+
+                       {/* Upload Media Button */}
+                       <label className="cursor-pointer">
+                          <input
+                             type="file"
+                             accept="image/*,video/*"
+                             onChange={handleCommentMediaChange}
+                             className="hidden"
+                          />
+                          <div className={`p-1.5 rounded border transition-colors ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-100'}`}>
+                             <ImageIcon size={16} />
+                          </div>
+                       </label>
+
+                       <button
                           onClick={handleSubmitComment}
-                          disabled={!newComment.trim()}
+                          disabled={!newComment.trim() || isUploadingMedia}
                           className="px-3 py-1.5 bg-blue-500 text-white rounded text-xs font-medium hover:bg-blue-600 disabled:opacity-50"
                        >
-                          {userHasRated ? 'Reply' : 'Post'}
+                          {isUploadingMedia ? 'Uploading...' : (userHasRated ? 'Reply' : 'Post')}
                        </button>
                     </div>
                  </div>

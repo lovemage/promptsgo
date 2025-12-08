@@ -34,6 +34,7 @@ interface DbComment {
   user_avatar: string | null;
   content: string;
   rating: number;
+  media: string | null;
   created_at: string;
 }
 
@@ -69,6 +70,7 @@ const dbToComment = (row: DbComment): Comment => ({
   userAvatar: row.user_avatar,
   content: row.content,
   rating: row.rating,
+  media: row.media,
   createdAt: new Date(row.created_at).getTime(),
 });
 
@@ -178,6 +180,7 @@ const addCommentToSupabase = async (promptId: string, comment: Comment): Promise
     user_avatar: comment.userAvatar || null,
     content: comment.content,
     rating: comment.rating,
+    media: comment.media || null,
   });
 
   if (commentError) {
