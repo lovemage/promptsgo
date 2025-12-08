@@ -189,7 +189,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                 <p className="mt-4 text-sm font-medium">No global prompts found.</p>
              </div>
           ) : (
-             <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
                 {filteredPrompts.map(prompt => (
                    <GlobalPromptCard
                       key={prompt.id}
