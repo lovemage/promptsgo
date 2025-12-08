@@ -28,7 +28,7 @@ export interface Comment {
   userName: string;
   userAvatar?: string | null;
   content: string;
-  rating: number; // 1-5
+  rating: number; // 1-5, 0 for reply
   createdAt: number;
 }
 
@@ -111,8 +111,10 @@ export interface Dictionary {
   writeComment: string;
   noComments: string;
   loginToComment: string;
-  rating: string;
-  image: string;
+    rating: string;
+    image: string;
+    termsOfService: string;
+    privacyPolicy: string;
 }
 
 export interface AppState {

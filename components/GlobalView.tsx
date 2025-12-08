@@ -20,9 +20,10 @@ interface GlobalViewProps {
   onRefreshLocal?: () => void;
   onEditGlobalPrompt?: (prompt: GlobalPrompt) => void;
   onDeleteGlobalPrompt?: (id: string) => void;
+  highlightPromptId?: string | null;
 }
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt, highlightPromptId }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
   const [activeModel, setActiveModel] = useState('All');

@@ -280,6 +280,8 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     loginToComment: 'Log in to rate and comment',
     rating: 'Rating',
     image: 'Image',
+    termsOfService: 'Terms of Service',
+    privacyPolicy: 'Privacy Policy',
   },
   'zh-TW': {
     appTitle: 'PromptsGo',
@@ -339,6 +341,8 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     loginToComment: '登入以評分和評論',
     rating: '評分',
     image: '圖片',
+    termsOfService: '服務條款',
+    privacyPolicy: '隱私權聲明',
   },
   ja: {
     appTitle: 'PromptsGo',
@@ -398,5 +402,7 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     loginToComment: 'ログインして評価・コメント',
     rating: '評価',
     image: '画像',
+    termsOfService: '利用規約',
+    privacyPolicy: 'プライバシーポリシー',
   },
 };

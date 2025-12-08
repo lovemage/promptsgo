@@ -27,6 +27,10 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [hasShared, setHasShared] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  
+  // Check if user has already rated/commented (rating > 0)
+  const userHasRated = user && prompt.comments.some(c => c.userId === user.id && c.rating > 0);
+  const uniqueCommenters = Array.from(new Set(prompt.comments.map(c => c.userName))).filter(name => name !== user?.displayName);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
 
   const isDark = theme === 'dark' || theme === 'binder';
@@ -58,29 +62,45 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
 
+    const isReply = userHasRated;
+    const ratingToSave = isReply ? 0 : userRating;
+
     const comment: Comment = {
       id: generateId(),
       userId: user.id,
       userName: user.displayName || 'User',
       userAvatar: user.photoURL,
       content: newComment,
-      rating: userRating,
+      rating: ratingToSave,
       createdAt: Date.now()
     };
 
     await globalService.addComment(prompt.id, comment);
-    // Refresh local state to show new comment immediately (optimistic)
+    
+    // Optimistic update
     const updatedComments = [comment, ...prompt.comments];
-    const newCount = prompt.ratingCount + 1;
-    const newAvg = ((prompt.rating * prompt.ratingCount) + userRating) / newCount;
+    
+    // Only update rating if it's not a reply
+    let newRating = prompt.rating;
+    let newCount = prompt.ratingCount;
+    
+    if (!isReply) {
+       newCount = prompt.ratingCount + 1;
+       const newAvg = ((prompt.rating * prompt.ratingCount) + ratingToSave) / newCount;
+       newRating = parseFloat(newAvg.toFixed(1));
+    }
 
     setPrompt({
         ...prompt,
         comments: updatedComments,
-        rating: parseFloat(newAvg.toFixed(1)),
+        rating: newRating,
         ratingCount: newCount
     });
     setNewComment('');
+  };
+
+  const handleMention = (name: string) => {
+     setNewComment(prev => prev + `@${name} `);
   };
 
   const handleShareToSocial = (platform: string) => {
@@ -423,10 +443,11 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                {/* Comments button */}
                <button
                   onClick={() => setShowComments(!showComments)}
-                  title={`${dict.comments} (${prompt.comments.length})`}
-                  className={`p-2 rounded-lg transition-colors ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  title={`${dict.comments}`}
+                  className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                >
                   <MessageSquare size={16} />
+                  {prompt.comments.length > 0 && <span className="text-xs font-semibold">{prompt.comments.length}</span>}
                </button>
 
                {/* Spacer */}
@@ -447,12 +468,18 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                        <div key={c.id} className="text-xs">
                           <div className="flex justify-between items-center mb-1">
                              <span className="font-bold opacity-80">{c.userName}</span>
-                             <div className="flex items-center gap-0.5">
-                                <Star size={8} className="fill-yellow-500 text-yellow-500" />
-                                <span>{c.rating}</span>
-                             </div>
+                             {c.rating > 0 && (
+                                <div className="flex items-center gap-0.5">
+                                    <Star size={8} className="fill-yellow-500 text-yellow-500" />
+                                    <span>{c.rating}</span>
+                                </div>
+                             )}
                           </div>
-                          <p className="opacity-70 leading-relaxed">{c.content}</p>
+                          <p className="opacity-70 leading-relaxed whitespace-pre-wrap">
+                            {c.content.split(' ').map((word, i) => 
+                               word.startsWith('@') ? <span key={i} className="text-blue-500 font-medium">{word} </span> : word + ' '
+                            )}
+                          </p>
                        </div>
                     ))
                  )}
@@ -461,19 +488,37 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
               {/* Add Comment */}
               {user ? (
                  <div className="space-y-2">
-                    <div className="flex items-center gap-1 text-xs mb-1">
-                       <span className="opacity-70">{dict.rating}:</span>
-                       {[1, 2, 3, 4, 5].map(star => (
-                          <button key={star} onClick={() => setUserRating(star)} className="focus:outline-none transition-transform hover:scale-110">
-                             <Star size={14} className={star <= userRating ? "fill-yellow-500 text-yellow-500" : "text-gray-400"} />
-                          </button>
-                       ))}
-                    </div>
+                    {!userHasRated && (
+                        <div className="flex items-center gap-1 text-xs mb-1">
+                           <span className="opacity-70">{dict.rating}:</span>
+                           {[1, 2, 3, 4, 5].map(star => (
+                              <button key={star} onClick={() => setUserRating(star)} className="focus:outline-none transition-transform hover:scale-110">
+                                 <Star size={14} className={star <= userRating ? "fill-yellow-500 text-yellow-500" : "text-gray-400"} />
+                              </button>
+                           ))}
+                        </div>
+                    )}
+                    
+                    {/* Mention Suggestions */}
+                    {uniqueCommenters.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                            {uniqueCommenters.map(name => (
+                                <button 
+                                    key={name} 
+                                    onClick={() => handleMention(name)}
+                                    className={`text-[10px] px-2 py-0.5 rounded-full border opacity-70 hover:opacity-100 whitespace-nowrap ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'}`}
+                                >
+                                    @{name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex gap-2">
                        <input 
                           value={newComment}
                           onChange={e => setNewComment(e.target.value)}
-                          placeholder={dict.writeComment}
+                          placeholder={userHasRated ? "Reply to discussion..." : dict.writeComment}
                           className={`flex-1 px-3 py-1.5 rounded text-xs border outline-none ${isDark ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'}`}
                        />
                        <button 
@@ -481,7 +526,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                           disabled={!newComment.trim()}
                           className="px-3 py-1.5 bg-blue-500 text-white rounded text-xs font-medium hover:bg-blue-600 disabled:opacity-50"
                        >
-                          Post
+                          {userHasRated ? 'Reply' : 'Post'}
                        </button>
                     </div>
                  </div>

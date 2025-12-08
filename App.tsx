@@ -17,6 +17,7 @@ import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
 import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
+import LegalView from './components/LegalView';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -56,7 +57,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Navigation State
-  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection'>('global');
+  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection' | 'terms' | 'privacy'>('global');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<LanguageCode>('en');
@@ -74,9 +75,18 @@ function App() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isEditingGlobalPrompt, setIsEditingGlobalPrompt] = useState(false);
   const [editingGlobalPromptId, setEditingGlobalPromptId] = useState<string | null>(null);
+  const [highlightPromptId, setHighlightPromptId] = useState<string | null>(null);
 
-  // Auth Listener
+  // Deep Linking & Auth Listener
   useEffect(() => {
+    // Check URL params
+    const params = new URLSearchParams(window.location.search);
+    const promptId = params.get('promptId');
+    if (promptId) {
+       setCurrentView('global');
+       setHighlightPromptId(promptId);
+    }
+
     const unsubscribe = onAuthStateChanged((user) => {
       setCurrentUser(user);
       setIsAuthLoading(false);
@@ -260,6 +270,24 @@ function App() {
       console.error('Error deleting prompt:', error);
       alert('❌ 刪除失敗');
     }
+  };
+
+  const handleDownloadSitemap = async () => {
+     try {
+        const xml = await globalService.generateSitemapXML();
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sitemap.xml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+     } catch (e) {
+        console.error("Failed to generate sitemap", e);
+        alert("Failed to generate sitemap");
+     }
   };
 
   // --- THEMING ---
@@ -646,6 +674,39 @@ function App() {
 
             </div>
           </div>
+
+          {/* Legal Links Footer */}
+          <div className={`mt-auto px-4 py-4 border-t ${theme === 'dark' ? 'border-slate-800' : theme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => {
+                   setCurrentView('terms');
+                   if (window.innerWidth < 768) setIsSidebarOpen(false);
+                }}
+                className={`text-xs text-left opacity-60 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
+              >
+                {dict.termsOfService}
+              </button>
+              <button 
+                onClick={() => {
+                   setCurrentView('privacy');
+                   if (window.innerWidth < 768) setIsSidebarOpen(false);
+                }}
+                className={`text-xs text-left opacity-60 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
+              >
+                {dict.privacyPolicy}
+              </button>
+              <button 
+                onClick={handleDownloadSitemap}
+                className={`text-xs text-left opacity-40 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
+              >
+                Sitemap (XML)
+              </button>
+            </div>
+             <div className={`text-[10px] mt-2 opacity-40 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                © 2025 PromptsGo
+             </div>
+          </div>
         </nav>
       </aside>
 
@@ -656,7 +717,15 @@ function App() {
       >
         
         {/* Render View based on State */}
-        {activeView === 'global' || activeView === 'collection' ? (
+        {currentView === 'terms' || currentView === 'privacy' ? (
+           <LegalView 
+              type={currentView} 
+              language={language}
+              theme={theme}
+              onBack={() => setCurrentView('global')}
+              dict={dict}
+           />
+        ) : activeView === 'global' || activeView === 'collection' ? (
            <GlobalView
               key={refreshGlobal}
               user={currentUser}
@@ -669,6 +738,7 @@ function App() {
               onRefreshLocal={() => setCurrentView('local')}
               onEditGlobalPrompt={handleEditGlobalPrompt}
               onDeleteGlobalPrompt={handleDeleteGlobalPrompt}
+              highlightPromptId={highlightPromptId}
            />
         ) : (
            /* LOCAL VIEW */

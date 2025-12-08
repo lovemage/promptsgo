@@ -1,23 +1,40 @@
 
-import { AppState, Category, Prompt } from '../types';
+import { AppState, Category, Prompt, LanguageCode } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_PROMPTS } from '../constants';
 
 const STORAGE_KEY = 'promptsgo_data_v1';
 
 const getStorageKey = (userId?: string) => userId ? `${STORAGE_KEY}_${userId}` : STORAGE_KEY;
 
+// Detect browser language
+export const detectBrowserLanguage = (): LanguageCode => {
+  const browserLang = navigator.language || (navigator as any).userLanguage;
+
+  // Map browser language codes to our supported languages
+  if (browserLang.startsWith('zh')) {
+    // Chinese (Simplified or Traditional)
+    return 'zh-TW';
+  } else if (browserLang.startsWith('ja')) {
+    // Japanese
+    return 'ja';
+  } else {
+    // Default to English for all other languages
+    return 'en';
+  }
+};
+
 export const loadState = (userId?: string): Partial<AppState> => {
   try {
     const key = getStorageKey(userId);
     const serializedState = localStorage.getItem(key);
     if (serializedState === null) {
-      // First load: return defaults
-      // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // First load: detect browser language
+      const detectedLanguage = detectBrowserLanguage();
       return {
         prompts: DEFAULT_PROMPTS,
         categories: DEFAULT_CATEGORIES,
         theme: 'journal',
-        language: 'en',
+        language: detectedLanguage,
         collectedGlobalIds: []
       };
     }

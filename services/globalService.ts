@@ -385,3 +385,33 @@ export const deleteBanner = async (id: string): Promise<void> => {
     const { error } = await supabase.from('app_banners').delete().eq('id', id);
     if (error) console.error("Failed to delete banner:", error);
 };
+
+// ========== Sitemap ==========
+
+export const generateSitemapXML = async (): Promise<string> => {
+  const prompts = await getGlobalPrompts();
+  const baseUrl = window.location.origin;
+  
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  
+  // Home page
+  xml += `  <url>\n`;
+  xml += `    <loc>${baseUrl}</loc>\n`;
+  xml += `    <changefreq>daily</changefreq>\n`;
+  xml += `    <priority>1.0</priority>\n`;
+  xml += `  </url>\n`;
+
+  // Prompts
+  prompts.forEach(prompt => {
+    xml += `  <url>\n`;
+    xml += `    <loc>${baseUrl}/?promptId=${prompt.id}</loc>\n`;
+    xml += `    <lastmod>${new Date(prompt.updatedAt || prompt.createdAt).toISOString()}</lastmod>\n`;
+    xml += `    <changefreq>weekly</changefreq>\n`;
+    xml += `    <priority>0.8</priority>\n`;
+    xml += `  </url>\n`;
+  });
+
+  xml += '</urlset>';
+  return xml;
+};
