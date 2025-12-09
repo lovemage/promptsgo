@@ -75,7 +75,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setTags([]);
       setCurrentTag('');
       setModelTags(prompt.modelTags || []);
-      setIsAnonymous(false);
+      // Check if editing an anonymous prompt
+      setIsAnonymous(isEditingGlobalPrompt && (prompt as any).authorId === 'anonymous');
       setImageFile(null);
       setComponentFiles([]);
       setVideoFile(null);
@@ -221,67 +222,34 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             if (url) videoUrl = url;
         }
 
-        // Upload Component Images
-        // Strategy: Keep all previews (old URLs + new base64), upload new files if Cloudinary configured
-
+        // Upload Component Images (Replace file placeholders in array? No, handle separately)
+        // We assume previews contain old URLs if editing. New files need upload.
+        // Simplified: Upload new files, then merge with existing URLs (if editing).
+        // Since componentPreviews has mix of base64 and URLs, we need to replace base64 with uploaded URLs.
+        
         const newComponentUrls: string[] = [];
-        const originalCount = isEditingGlobalPrompt && (prompt as any).componentImages ? (prompt as any).componentImages.length : 0;
-
-        console.log('📸 Component Images Debug:', {
-            isEditing: isEditingGlobalPrompt,
-            originalCount,
-            previewsCount: componentPreviews.length,
-            filesCount: componentFiles.length,
-            previews: componentPreviews,
-            isCloudinaryConfigured: isCloudinaryConfigured()
-        });
-
-        // Process all previews
-        for (let i = 0; i < componentPreviews.length; i++) {
-            const preview = componentPreviews[i];
-
-            if (preview.startsWith('http')) {
-                // Old image URL - keep as is
-                console.log(`  [${i}] Old HTTP URL: ${preview.substring(0, 50)}...`);
-                newComponentUrls.push(preview);
-            } else if (preview.startsWith('data:')) {
-                // Base64 image - check if it's a new file that needs uploading
-                if (isCloudinaryConfigured() && i >= originalCount) {
-                    // This is a new file, try to upload it
-                    const fileIndex = i - originalCount;
-                    console.log(`  [${i}] New base64 (fileIndex: ${fileIndex}), uploading...`);
-                    if (fileIndex < componentFiles.length) {
-                        const url = await upload(componentFiles[fileIndex]);
-                        if (url) {
-                            console.log(`  [${i}] ✅ Uploaded to: ${url.substring(0, 50)}...`);
-                            newComponentUrls.push(url);
-                        } else {
-                            // Upload failed, keep base64
-                            console.log(`  [${i}] ❌ Upload failed, keeping base64`);
-                            newComponentUrls.push(preview);
-                        }
-                    } else {
-                        // File not found, keep base64
-                        console.log(`  [${i}] ⚠️ File not found (fileIndex: ${fileIndex}), keeping base64`);
-                        newComponentUrls.push(preview);
-                    }
-                } else {
-                    // Cloudinary not configured or old image, keep base64
-                    console.log(`  [${i}] Base64 (Cloudinary: ${isCloudinaryConfigured()}, isNew: ${i >= originalCount}), keeping as is`);
-                    newComponentUrls.push(preview);
-                }
+        if (isCloudinaryConfigured()) {
+            for (const file of componentFiles) {
+                const url = await upload(file);
+                if (url) newComponentUrls.push(url);
             }
         }
-
-        console.log('📸 Final component URLs:', newComponentUrls);
-        componentUrls = newComponentUrls;
+        
+        // Mix: If editing, we might have kept old URLs.
+        // If not Cloudinary, we use base64.
+        if (isCloudinaryConfigured()) {
+             // Keep old URLs (filter out base64s from previews)
+             const oldUrls = componentPreviews.filter(p => p.startsWith('http'));
+             componentUrls = [...oldUrls, ...newComponentUrls];
+        } else {
+             // Use previews (base64)
+             componentUrls = componentPreviews;
+        }
 
     } catch (error) {
         console.error('Upload failed:', error);
         alert('Upload failed. Saving with previews/placeholders.');
     }
-
-    setIsUploading(false);
 
     const promptData = {
         title,
@@ -290,9 +258,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         positive,
         negative,
         note,
-        authorId: user?.id || 'guest',
-        authorName: user?.displayName || 'Guest',
-        authorAvatar: user?.photoURL,
+        authorId: isAnonymous ? 'anonymous' : (user?.id || 'guest'),
+        authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
+        authorAvatar: isAnonymous ? undefined : user?.photoURL,
         tags: tagList,
         modelTags: modelTags,
         image: imageUrl,
@@ -301,26 +269,31 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         updatedAt: Date.now()
     };
 
-    console.log('💾 Saving prompt data:', { componentImages: componentUrls });
+    try {
+      if (isEditingGlobalPrompt && globalPromptId) {
+        await updatePrompt({ ...promptData, id: globalPromptId } as GlobalPrompt);
+        alert('Updated Global Prompt!');
+      } else {
+        await sharePrompt({ 
+            ...promptData, 
+            id: generateId(), 
+            rating: 0, 
+            ratingCount: 0, 
+            comments: [], 
+            views: 0, 
+            createdAt: Date.now() 
+        } as GlobalPrompt);
+        alert('Published to Global Prompts!');
+      }
 
-    if (isEditingGlobalPrompt && globalPromptId) {
-      await updatePrompt({ ...promptData, id: globalPromptId } as GlobalPrompt);
-      alert('✅ Updated Global Prompt!');
-    } else {
-      await sharePrompt({
-          ...promptData,
-          id: generateId(),
-          rating: 0,
-          ratingCount: 0,
-          comments: [],
-          views: 0,
-          createdAt: Date.now()
-      } as GlobalPrompt);
-      alert('✅ Published to Global Prompts!');
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error: any) {
+      console.error('Failed to save prompt:', error);
+      alert(`Failed to save prompt: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
     }
-
-    if (onSuccess) onSuccess();
-    onClose();
   };
 
   // Theme Styles

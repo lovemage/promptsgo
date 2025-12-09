@@ -134,7 +134,10 @@ const sharePromptToSupabase = async (prompt: GlobalPrompt): Promise<void> => {
     views: 0,
   });
 
-  if (error) console.error('Error sharing prompt:', error);
+  if (error) {
+    console.error('Error sharing prompt:', error);
+    throw new Error(`Failed to share prompt: ${error.message}`);
+  }
 };
 
 const updatePromptInSupabase = async (prompt: GlobalPrompt): Promise<void> => {
@@ -151,12 +154,16 @@ const updatePromptInSupabase = async (prompt: GlobalPrompt): Promise<void> => {
       tags: prompt.tags,
       model_tags: prompt.modelTags || [],
       image: prompt.image || null,
+      component_images: prompt.componentImages || [],
       source_url: prompt.sourceUrl || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', prompt.id);
 
-  if (error) console.error('Error updating prompt:', error);
+  if (error) {
+    console.error('Error updating prompt:', error);
+    throw new Error(`Failed to update prompt: ${error.message}`);
+  }
 };
 
 const deletePromptInSupabase = async (promptId: string): Promise<void> => {
