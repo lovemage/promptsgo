@@ -222,34 +222,38 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         }
 
         // Upload Component Images
-        // Strategy: Upload new files, keep old URLs, and preserve base64 if Cloudinary not configured
+        // Strategy: Keep all previews (old URLs + new base64), upload new files if Cloudinary configured
 
         const newComponentUrls: string[] = [];
+        const originalCount = isEditingGlobalPrompt && (prompt as any).componentImages ? (prompt as any).componentImages.length : 0;
 
-        // First, add existing URLs from previews (old images when editing)
-        if (isEditingGlobalPrompt && (prompt as any).componentImages) {
-            // Add original images that are still in previews
-            const originalCount = (prompt as any).componentImages.length;
-            for (let i = 0; i < originalCount && i < componentPreviews.length; i++) {
-                if (componentPreviews[i].startsWith('http')) {
-                    newComponentUrls.push(componentPreviews[i]);
-                }
-            }
-        }
+        // Process all previews
+        for (let i = 0; i < componentPreviews.length; i++) {
+            const preview = componentPreviews[i];
 
-        // Then, upload and add new files
-        if (isCloudinaryConfigured()) {
-            for (const file of componentFiles) {
-                const url = await upload(file);
-                if (url) newComponentUrls.push(url);
-            }
-        } else {
-            // If Cloudinary not configured, use base64 for new files
-            for (let i = 0; i < componentFiles.length; i++) {
-                const originalCount = isEditingGlobalPrompt && (prompt as any).componentImages ? (prompt as any).componentImages.length : 0;
-                const previewIndex = originalCount + i;
-                if (previewIndex < componentPreviews.length) {
-                    newComponentUrls.push(componentPreviews[previewIndex]);
+            if (preview.startsWith('http')) {
+                // Old image URL - keep as is
+                newComponentUrls.push(preview);
+            } else if (preview.startsWith('data:')) {
+                // Base64 image - check if it's a new file that needs uploading
+                if (isCloudinaryConfigured() && i >= originalCount) {
+                    // This is a new file, try to upload it
+                    const fileIndex = i - originalCount;
+                    if (fileIndex < componentFiles.length) {
+                        const url = await upload(componentFiles[fileIndex]);
+                        if (url) {
+                            newComponentUrls.push(url);
+                        } else {
+                            // Upload failed, keep base64
+                            newComponentUrls.push(preview);
+                        }
+                    } else {
+                        // File not found, keep base64
+                        newComponentUrls.push(preview);
+                    }
+                } else {
+                    // Cloudinary not configured or old image, keep base64
+                    newComponentUrls.push(preview);
                 }
             }
         }
