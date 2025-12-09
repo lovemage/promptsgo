@@ -19,7 +19,7 @@ import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
 import WebViewWarning from './components/WebViewWarning';
-import OnboardingTour, { TourStep } from './components/OnboardingTour';
+import OnboardingTour from './components/OnboardingTour';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 
 // Icon mapping helper
@@ -324,32 +324,32 @@ function App() {
      }
   };
 
-  const tourSteps: TourStep[] = [
+  const tourSteps = useMemo(() => [
      {
         targetId: 'nav-local-prompts',
         title: dict.tourStep1Title,
         content: dict.tourStep1Content,
-        position: 'right'
+        position: 'right' as const
      },
      {
         targetId: 'btn-new-prompt',
         title: dict.tourStep2Title,
         content: dict.tourStep2Content,
-        position: 'bottom'
+        position: 'bottom' as const
      },
      {
         targetId: 'btn-category-settings',
         title: dict.tourStep3Title,
         content: dict.tourStep3Content,
-        position: 'right'
+        position: 'right' as const
      },
      {
         targetId: 'btn-share-prompt-0',
         title: dict.tourStep4Title,
         content: dict.tourStep4Content,
-        position: 'left'
+        position: 'left' as const
      }
-  ];
+  ], [dict]);
 
   // --- THEMING ---
   const isDark = theme === 'dark' || theme === 'binder';
