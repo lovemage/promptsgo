@@ -52,6 +52,11 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const cardBg = theme === 'dark' ? 'bg-slate-800' : theme === 'binder' ? 'bg-[#2c2c2c] text-white' : theme === 'journal' ? 'bg-white hover:bg-[#fefbf6] border-slate-200 hover:border-[#80c63c] transition-colors' : theme === 'glass' ? 'bg-white/40 backdrop-blur-md border-white/30 hover:bg-white/50 text-slate-800 shadow-sm hover:shadow-md transition-all' : 'bg-white';
   const textMuted = isDark ? 'text-slate-400' : 'text-slate-500';
 
+  // Sync prompt state when initialPrompt changes
+  React.useEffect(() => {
+    setPrompt(initialPrompt);
+  }, [initialPrompt]);
+
   // Check if user has shared this prompt
   React.useEffect(() => {
     const sharedPrompts = JSON.parse(localStorage.getItem('promptsgo_shared_prompts') || '{}');
