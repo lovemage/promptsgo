@@ -134,6 +134,10 @@ export interface Dictionary {
     tourStep3Content: string;
     tourStep4Title: string;
     tourStep4Content: string;
+    tourComplete: string;
+    selectAll: string;
+    deselectAll: string;
+    deleteSelected: string;
 }
 
 export interface AppState {

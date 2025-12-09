@@ -85,6 +85,9 @@ function App() {
   const [webViewType, setWebViewType] = useState<string | null>(null);
   const [isTourOpen, setIsTourOpen] = useState(false);
 
+  // Bulk Delete
+  const [selectedPromptIds, setSelectedPromptIds] = useState<Set<string>>(new Set());
+
   // Deep Linking & Auth Listener
   useEffect(() => {
     // Check URL params
@@ -177,6 +180,34 @@ function App() {
   const handleDeletePrompt = (id: string) => {
     if (window.confirm(dict.confirmDelete)) {
       setPrompts(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
+  const handleToggleSelectPrompt = (id: string) => {
+    setSelectedPromptIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedPromptIds(new Set(filteredPrompts.map(p => p.id)));
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedPromptIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedPromptIds.size === 0) return;
+    if (window.confirm(`${dict.confirmDelete} (${selectedPromptIds.size} ${dict.localPrompts})`)) {
+      setPrompts(prev => prev.filter(p => !selectedPromptIds.has(p.id)));
+      setSelectedPromptIds(new Set());
     }
   };
 
@@ -815,6 +846,34 @@ function App() {
                     className={`w-full pl-10 pr-4 py-2 rounded-full border text-sm outline-none transition-all ${styles.input} ${theme === 'light' || theme === 'dark' ? 'focus:ring-2' : ''}`}
                   />
                 </div>
+
+                {/* Bulk Delete Controls */}
+                {selectedPromptIds.size > 0 && (
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className="text-sm opacity-60">{selectedPromptIds.size} {dict.localPrompts}</span>
+                    <button
+                      onClick={handleSelectAll}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem}`}
+                      title={dict.selectAll}
+                    >
+                      {dict.selectAll}
+                    </button>
+                    <button
+                      onClick={handleDeselectAll}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem}`}
+                      title={dict.deselectAll}
+                    >
+                      {dict.deselectAll}
+                    </button>
+                    <button
+                      onClick={handleDeleteSelected}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
+                      title={dict.deleteSelected}
+                    >
+                      {dict.deleteSelected}
+                    </button>
+                  </div>
+                )}
               </header>
 
               {/* Content Grid */}
@@ -827,14 +886,22 @@ function App() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
                     {filteredPrompts.map((prompt, index) => (
-                      <div 
-                        key={prompt.id} 
-                        className={`group relative flex flex-col p-5 rounded-2xl border transition-all duration-300 ${styles.card}`}
+                      <div
+                        key={prompt.id}
+                        className={`group relative flex flex-col p-5 rounded-2xl border transition-all duration-300 ${selectedPromptIds.has(prompt.id) ? 'ring-2 ring-blue-500' : ''} ${styles.card}`}
                       >
                         <div className="flex justify-between items-start mb-3">
-                          <h3 className={`font-semibold text-lg line-clamp-1 transition-colors pr-2 ${theme === 'journal' ? 'group-hover:text-[#0c9e2d]' : 'group-hover:text-blue-500'}`}>
-                            {prompt.title}
-                          </h3>
+                          <div className="flex items-start gap-2 flex-1">
+                            <input
+                              type="checkbox"
+                              checked={selectedPromptIds.has(prompt.id)}
+                              onChange={() => handleToggleSelectPrompt(prompt.id)}
+                              className="mt-1 w-4 h-4 rounded cursor-pointer"
+                            />
+                            <h3 className={`font-semibold text-lg line-clamp-1 transition-colors pr-2 ${theme === 'journal' ? 'group-hover:text-[#0c9e2d]' : 'group-hover:text-blue-500'}`}>
+                              {prompt.title}
+                            </h3>
+                          </div>
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 relative z-20">
                             
                             {/* Note Button */}

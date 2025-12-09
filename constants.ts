@@ -12,7 +12,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   // Art & Design
   {
     id: 'def-1',
-    title: 'Cyberpunk Street',
+    title: 'Cyberpunk Street (sample)',
     description: 'Neon-lit futuristic city environment',
     positive: 'Neon-lit cyberpunk street, rain-slicked pavement, towering skyscrapers with holographic ads, cinematic lighting, highly detailed, 8k, unreal engine 5 render.',
     negative: 'blurry, low quality, distorted, watermark',
@@ -23,7 +23,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-2',
-    title: 'Fantasy Landscape',
+    title: 'Fantasy Landscape (sample)',
     description: 'Dreamlike floating islands',
     positive: 'Ethereal floating islands, waterfalls cascading into clouds, vibrant fantasy flora, dreamlike atmosphere, digital painting, artstation.',
     negative: 'dark, gloomy, pixelated',
@@ -34,7 +34,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-3',
-    title: 'Warrior Portrait',
+    title: 'Warrior Portrait (sample)',
     description: 'Detailed character design',
     positive: 'Close-up portrait of a warrior princess with intricate golden armor, fierce expression, dramatic lighting, photorealistic, sharp focus.',
     negative: 'helmet, ugly, deformed eyes',
@@ -45,7 +45,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-4',
-    title: 'Abstract Oil Painting',
+    title: 'Abstract Oil Painting (sample)',
     description: 'Expressionist style art',
     positive: 'Abstract expressionist oil painting, chaotic brushstrokes, vibrant colors, emotional, textured, thick paint impasto.',
     negative: 'smooth, digital, vector',
@@ -56,7 +56,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-5',
-    title: 'Isometric Gamer Room',
+    title: 'Isometric Gamer Room (sample)',
     description: '3D cute room render',
     positive: 'Cute isometric gamer room, pastel colors, cozy atmosphere, low poly 3d render, soft lighting, blender 3d.',
     negative: 'noisy, realistic, dark',
@@ -68,7 +68,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   // Coding
   {
     id: 'def-6',
-    title: 'React Button Component',
+    title: 'React Button Component (sample)',
     description: 'Reusable UI component',
     positive: 'Create a reusable React button component with Tailwind CSS variants for primary, secondary, and ghost styles. Include TypeScript interfaces.',
     note: 'Remember to check for accessibility props.',
@@ -78,7 +78,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-7',
-    title: 'Python Web Scraper',
+    title: 'Python Web Scraper (sample)',
     description: 'BeautifulSoup script',
     positive: 'Write a Python script to scrape product prices from a website using BeautifulSoup and save them to a CSV file. Handle pagination.',
     note: 'Respect robots.txt when testing.',
@@ -88,7 +88,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-8',
-    title: 'Complex SQL Query',
+    title: 'Complex SQL Query (sample)',
     description: 'Customer analytics',
     positive: 'Write a complex SQL query to find the top 5 spending customers in the last month, joining users and orders tables, grouped by user ID.',
     note: 'Ensure indexes are used on foreign keys.',
@@ -98,7 +98,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-9',
-    title: 'Regex for Email',
+    title: 'Regex for Email (sample)',
     description: 'Validation pattern',
     positive: 'Generate a robust regular expression to validate email addresses that supports modern TLDs and prevents common injection attacks.',
     note: 'Test with edge cases like subdomain.co.uk',
@@ -108,7 +108,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-10',
-    title: 'Node.js Auth Endpoint',
+    title: 'Node.js Auth Endpoint (sample)',
     description: 'Express API route',
     positive: 'Design a RESTful API endpoint in Node.js Express for user registration with input validation (zod) and password hashing (bcrypt).',
     note: 'Use salt rounds >= 10.',
@@ -119,7 +119,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   // Writing
   {
     id: 'def-11',
-    title: 'Blog Intro: Tech',
+    title: 'Blog Intro: Tech (sample)',
     description: 'Opening for a tech article',
     positive: 'Write a catchy introduction for a blog post about the benefits of meditation for software developers. Hook the reader immediately.',
     note: 'Tone: Professional yet relatable.',
@@ -129,7 +129,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-12',
-    title: 'Sci-Fi Story Opener',
+    title: 'Sci-Fi Story Opener (sample)',
     description: 'Creative writing prompt',
     positive: 'Write the opening paragraph of a sci-fi novel where the protagonist discovers a message from their future self hidden in a legacy code base.',
     note: 'Genre: Cyberpunk / Mystery',
@@ -139,7 +139,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-13',
-    title: 'Client Apology Email',
+    title: 'Client Apology Email (sample)',
     description: 'Professional communication',
     positive: 'Draft a professional email to a client explaining a delay in the project timeline due to unforeseen technical challenges. Propose a new deadline.',
     note: 'Keep it concise and solution-oriented.',
@@ -149,7 +149,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-14',
-    title: 'Product Description',
+    title: 'Product Description (sample)',
     description: 'Marketing copy',
     positive: 'Write a persuasive product description for a noise-cancelling headphone with 30-hour battery life, focusing on comfort and audio fidelity.',
     note: 'Target audience: Audiophiles and travelers.',
@@ -159,7 +159,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-15',
-    title: 'Developer Haiku',
+    title: 'Developer Haiku (sample)',
     description: 'Short poem',
     positive: 'Write a haiku about the feeling of compiling code successfully after hours of debugging errors.',
     note: 'Just for fun!',
@@ -170,7 +170,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   // Photography
   {
     id: 'def-16',
-    title: 'Portrait Setup',
+    title: 'Portrait Setup (sample)',
     description: 'Elderly portrait guide',
     positive: 'Portrait of an elderly man with a weathered face, natural light, shallow depth of field, 85mm lens, black and white, rembrandt lighting.',
     negative: 'flash glare, oversaturated',
@@ -181,7 +181,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-17',
-    title: 'Landscape Sunrise',
+    title: 'Landscape Sunrise (sample)',
     description: 'Nature photography prompt',
     positive: 'Wide angle shot of a mountain range at sunrise, golden hour, mist in the valleys, sharp focus, f/16, high dynamic range.',
     note: 'Tripod essential for this shot.',
@@ -191,7 +191,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-18',
-    title: 'Macro Spider Web',
+    title: 'Macro Spider Web (sample)',
     description: 'Close-up detail',
     positive: 'Macro photography of a dew drop on a spider web, refraction of the background, crisp details, bokeh, morning light.',
     note: 'Lens: 100mm Macro',
@@ -201,7 +201,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-19',
-    title: 'Tokyo Street',
+    title: 'Tokyo Street (sample)',
     description: 'Urban photography',
     positive: 'Candid street photography in Tokyo, busy crosswalk at night, motion blur of cars, sharp focus on a pedestrian, cyberpunk vibes.',
     note: 'Shutter speed: 1/60s',
@@ -211,7 +211,7 @@ export const DEFAULT_PROMPTS: Prompt[] = [
   },
   {
     id: 'def-20',
-    title: 'Gourmet Burger',
+    title: 'Gourmet Burger (sample)',
     description: 'Food photography',
     positive: 'Top-down shot of a gourmet burger on a wooden board, rustic styling, soft natural lighting, appetizing, commercial food photography.',
     note: 'Use a reflector to fill shadows.',
@@ -299,6 +299,10 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     tourStep3Content: 'Manage your categories here. Customize colors and icons to organize your prompts your way.',
     tourStep4Title: 'Share to Global',
     tourStep4Content: 'Share your best prompts with the community! Click the share icon on any card to publish.',
+    tourComplete: 'Complete Tour',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
+    deleteSelected: 'Delete Selected',
   },
   'zh-TW': {
     appTitle: 'PromptsGo',
@@ -377,6 +381,10 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     tourStep3Content: '在這裡管理您的分類。自訂顏色與圖示，依照您的喜好整理提示詞。',
     tourStep4Title: '分享至全球',
     tourStep4Content: '將您最棒的提示詞分享給社群！點擊卡片上的分享圖示即可發布。',
+    tourComplete: '完成教學',
+    selectAll: '全選',
+    deselectAll: '取消全選',
+    deleteSelected: '刪除已選',
   },
   ja: {
     appTitle: 'PromptsGo',
@@ -455,5 +463,9 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     tourStep3Content: 'ここでカテゴリーを管理します。色やアイコンをカスタマイズして、自分好みに整理しましょう。',
     tourStep4Title: 'グローバルに共有',
     tourStep4Content: '最高のプロンプトをコミュニティと共有しましょう！カードの共有アイコンをクリックして公開します。',
+    tourComplete: 'ツアー完了',
+    selectAll: 'すべて選択',
+    deselectAll: 'すべて選択解除',
+    deleteSelected: '選択したものを削除',
   },
 };

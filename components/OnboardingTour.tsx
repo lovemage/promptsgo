@@ -224,8 +224,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
                 {/* Arrow (Visual decoration only for now) */}
                 
                 {/* Mascot / Icon */}
-                <div className={`absolute -top-8 left-1/2 -translate-x-1/2 rounded-full p-2 shadow-lg ring-4 ring-white dark:ring-slate-800 ${primaryColor}`}>
-                    <span className="text-2xl" role="img" aria-label="mascot">👋</span>
+                <div className={`absolute -top-8 left-1/2 -translate-x-1/2 rounded-full shadow-lg ring-4 ring-white dark:ring-slate-800 overflow-hidden w-16 h-16`}>
+                    <img src="/ComfyUI_00048_.PNG" alt="mascot" className="w-full h-full object-cover" />
                 </div>
 
                 <div className="mt-4 text-center">
@@ -253,7 +253,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
                         onClick={handleNext}
                         className={`flex items-center gap-1 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg ${buttonColor}`}
                     >
-                        {isLastStep ? (dict?.share || 'Start') : (dict?.tourNext || 'Next')}
+                        {isLastStep ? (dict?.tourComplete || 'Complete') : (dict?.tourNext || 'Next')}
                         {isLastStep ? <Check size={16} /> : <ChevronRight size={16} />}
                     </button>
                 </div>
