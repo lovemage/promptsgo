@@ -221,38 +221,40 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             if (url) videoUrl = url;
         }
 
-        // Upload Component Images (Replace file placeholders in array? No, handle separately)
-        // We assume previews contain old URLs if editing. New files need upload.
-        // Simplified: Upload new files, then merge with existing URLs (if editing).
-        // Since componentPreviews has mix of base64 and URLs, we need to replace base64 with uploaded URLs.
-        
-        // Better strategy: Clear previews? No.
-        // We iterate componentFiles (new ones). Upload them.
-        // We need to insert them into the correct order? Or just append?
-        // User just adds.
-        
-        // Actually, logic is: existing URLs in componentPreviews should stay. Base64s should be replaced.
-        // But aligning componentFiles with componentPreviews indices is hard if we delete.
-        // Simple approach: Upload all new files. Append to existing URLs (from prompt).
-        
+        // Upload Component Images
+        // Strategy: Upload new files, keep old URLs, and preserve base64 if Cloudinary not configured
+
         const newComponentUrls: string[] = [];
+
+        // First, add existing URLs from previews (old images when editing)
+        if (isEditingGlobalPrompt && (prompt as any).componentImages) {
+            // Add original images that are still in previews
+            const originalCount = (prompt as any).componentImages.length;
+            for (let i = 0; i < originalCount && i < componentPreviews.length; i++) {
+                if (componentPreviews[i].startsWith('http')) {
+                    newComponentUrls.push(componentPreviews[i]);
+                }
+            }
+        }
+
+        // Then, upload and add new files
         if (isCloudinaryConfigured()) {
             for (const file of componentFiles) {
                 const url = await upload(file);
                 if (url) newComponentUrls.push(url);
             }
-        }
-        
-        // Mix: If editing, we might have kept old URLs.
-        // If not Cloudinary, we use base64.
-        if (isCloudinaryConfigured()) {
-             // Keep old URLs (filter out base64s from previews)
-             const oldUrls = componentPreviews.filter(p => p.startsWith('http'));
-             componentUrls = [...oldUrls, ...newComponentUrls];
         } else {
-             // Use previews (base64)
-             componentUrls = componentPreviews;
+            // If Cloudinary not configured, use base64 for new files
+            for (let i = 0; i < componentFiles.length; i++) {
+                const originalCount = isEditingGlobalPrompt && (prompt as any).componentImages ? (prompt as any).componentImages.length : 0;
+                const previewIndex = originalCount + i;
+                if (previewIndex < componentPreviews.length) {
+                    newComponentUrls.push(componentPreviews[previewIndex]);
+                }
+            }
         }
+
+        componentUrls = newComponentUrls;
 
     } catch (error) {
         console.error('Upload failed:', error);
