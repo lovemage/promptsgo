@@ -102,24 +102,30 @@ function App() {
       setShowWebViewWarning(true);
     }
 
+    let timer: NodeJS.Timeout | null = null;
+
     const unsubscribe = onAuthStateChanged((user) => {
       setCurrentUser(user);
       setIsAuthLoading(false);
-      
+
       // Check for Onboarding Tour
       if (user) {
          const hasSeenTour = localStorage.getItem(`promptsgo_tour_completed_${user.id}`);
          if (!hasSeenTour) {
             // Delay slightly to ensure UI is rendered
-            setTimeout(() => {
+            timer = setTimeout(() => {
                // Ensure we are on local view for the tour
-               setCurrentView('local'); 
+               setCurrentView('local');
                setIsTourOpen(true);
             }, 1000);
          }
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   // Load Data when User changes
