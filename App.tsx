@@ -212,9 +212,33 @@ function App() {
   };
 
   const handleCopy = (text: string, uniqueId: string) => {
-    navigator.clipboard.writeText(text);
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        // Fallback to old method if modern API fails
+        copyToClipboardFallback(text);
+      });
+    } else {
+      // Fallback for older browsers
+      copyToClipboardFallback(text);
+    }
     setCopiedId(uniqueId);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const copyToClipboardFallback = (text: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+    document.body.removeChild(textarea);
   };
 
   const handleOpenEdit = (prompt: Prompt) => {

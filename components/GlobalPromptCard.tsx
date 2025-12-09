@@ -65,9 +65,33 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   }, [prompt.id, user?.id]);
 
   const handleCopy = (text: string, type: string) => {
-    navigator.clipboard.writeText(text);
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        // Fallback to old method if modern API fails
+        copyToClipboardFallback(text);
+      });
+    } else {
+      // Fallback for older browsers
+      copyToClipboardFallback(text);
+    }
     setCopiedId(type);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const copyToClipboardFallback = (text: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+    document.body.removeChild(textarea);
   };
 
   const handleCommentMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,7 +224,16 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     setHasShared(true);
 
     if (platform === 'copy') {
-      navigator.clipboard.writeText(url);
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(() => {
+          // Fallback to old method if modern API fails
+          copyToClipboardFallback(url);
+        });
+      } else {
+        // Fallback for older browsers
+        copyToClipboardFallback(url);
+      }
       setCopiedId('share-link');
       setTimeout(() => setCopiedId(null), 2000);
     } else {
