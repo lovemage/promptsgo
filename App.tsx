@@ -19,7 +19,7 @@ import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
 import WebViewWarning from './components/WebViewWarning';
-import OnboardingTour from './components/OnboardingTour';
+import OnboardingTour, { TourStep } from './components/OnboardingTour';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 
 // Icon mapping helper
@@ -163,14 +163,14 @@ function App() {
     });
   }, [prompts, searchQuery, selectedCategoryId]);
 
-  const handleSavePrompt = (prompt: Prompt) => {
+  const handleSavePrompt = useCallback((prompt: Prompt) => {
     if (editingPrompt) {
       setPrompts(prev => prev.map(p => p.id === prompt.id ? prompt : p));
     } else {
       setPrompts(prev => [prompt, ...prev]);
     }
     setEditingPrompt(null);
-  };
+  }, [editingPrompt]);
 
   const handleDeletePrompt = (id: string) => {
     if (window.confirm(dict.confirmDelete)) {
@@ -306,13 +306,13 @@ function App() {
     }
   };
 
-  const handleTourComplete = () => {
+  const handleTourComplete = useCallback(() => {
      setIsTourOpen(false);
      setIsSidebarOpen(false); // Close sidebar after tour
      if (currentUser) {
         localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
      }
-  };
+  }, [currentUser]);
 
   const handleTourStepChange = useCallback((index: number) => {
      // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
@@ -1031,7 +1031,7 @@ function App() {
       <OnboardingTour
          steps={tourSteps}
          isOpen={isTourOpen}
-         onClose={() => handleTourComplete()} // Use same handler to mark as complete if skipped
+         onClose={handleTourComplete} 
          onComplete={handleTourComplete}
          dict={dict}
          theme={theme}
