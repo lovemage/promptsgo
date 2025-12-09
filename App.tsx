@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  Plus, Search, LayoutGrid, Settings, Trash2, 
+import {
+  Plus, Search, LayoutGrid, Settings, Trash2,
   Copy, Edit2, Tag, Globe, ChevronsUpDown, Check, Palette as PaletteIcon,
   // Icon Imports for mapping
-  Palette, Code, PenTool, Camera, Music, Video, Gamepad2, 
+  Palette, Code, PenTool, Camera, Music, Video, Gamepad2,
   Cpu, Zap, Heart, Star, Smile, Briefcase, Rocket, Coffee,
-  User, LogOut, StickyNote, Share2, Bookmark, Menu
+  User, LogOut, StickyNote, Share2, Bookmark, Menu, CheckSquare, Square, Trash
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
@@ -849,28 +849,27 @@ function App() {
 
                 {/* Bulk Delete Controls */}
                 {selectedPromptIds.size > 0 && (
-                  <div className="ml-auto flex items-center gap-3">
-                    <span className="text-sm opacity-60">{selectedPromptIds.size} {dict.localPrompts}</span>
+                  <div className="ml-auto flex items-center gap-2">
                     <button
                       onClick={handleSelectAll}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem}`}
+                      className={`p-2 rounded-lg transition-colors ${styles.hoverItem}`}
                       title={dict.selectAll}
                     >
-                      {dict.selectAll}
+                      <CheckSquare size={18} />
                     </button>
                     <button
                       onClick={handleDeselectAll}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem}`}
+                      className={`p-2 rounded-lg transition-colors ${styles.hoverItem}`}
                       title={dict.deselectAll}
                     >
-                      {dict.deselectAll}
+                      <Square size={18} />
                     </button>
                     <button
                       onClick={handleDeleteSelected}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
+                      className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
                       title={dict.deleteSelected}
                     >
-                      {dict.deleteSelected}
+                      <Trash size={18} />
                     </button>
                   </div>
                 )}
