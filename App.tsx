@@ -19,6 +19,7 @@ import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
 import WebViewWarning from './components/WebViewWarning';
+import OnboardingTour, { TourStep } from './components/OnboardingTour';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 
 // Icon mapping helper
@@ -82,6 +83,7 @@ function App() {
   // WebView Detection
   const [showWebViewWarning, setShowWebViewWarning] = useState(false);
   const [webViewType, setWebViewType] = useState<string | null>(null);
+  const [isTourOpen, setIsTourOpen] = useState(false);
 
   // Deep Linking & Auth Listener
   useEffect(() => {
@@ -103,6 +105,19 @@ function App() {
     const unsubscribe = onAuthStateChanged((user) => {
       setCurrentUser(user);
       setIsAuthLoading(false);
+      
+      // Check for Onboarding Tour
+      if (user) {
+         const hasSeenTour = localStorage.getItem(`promptsgo_tour_completed_${user.id}`);
+         if (!hasSeenTour) {
+            // Delay slightly to ensure UI is rendered
+            setTimeout(() => {
+               // Ensure we are on local view for the tour
+               setCurrentView('local'); 
+               setIsTourOpen(true);
+            }, 1000);
+         }
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -285,7 +300,39 @@ function App() {
     }
   };
 
+  const handleTourComplete = () => {
+     setIsTourOpen(false);
+     if (currentUser) {
+        localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
+     }
+  };
 
+  const tourSteps: TourStep[] = [
+     {
+        targetId: 'nav-local-prompts',
+        title: dict.tourStep1Title,
+        content: dict.tourStep1Content,
+        position: 'right'
+     },
+     {
+        targetId: 'btn-new-prompt',
+        title: dict.tourStep2Title,
+        content: dict.tourStep2Content,
+        position: 'bottom'
+     },
+     {
+        targetId: 'btn-category-settings',
+        title: dict.tourStep3Title,
+        content: dict.tourStep3Content,
+        position: 'right'
+     },
+     {
+        targetId: 'btn-share-prompt-0',
+        title: dict.tourStep4Title,
+        content: dict.tourStep4Content,
+        position: 'left'
+     }
+  ];
 
   // --- THEMING ---
   const isDark = theme === 'dark' || theme === 'binder';
@@ -452,6 +499,7 @@ function App() {
 
         <div className="px-4 mb-4 mt-2 md:mt-0">
           <button
+            id="btn-new-prompt"
             onClick={handleOpenNew}
             disabled={!currentUser}
             className={`w-full py-2.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2
@@ -493,6 +541,7 @@ function App() {
 
           {/* My Library (Local Prompts) */}
           <button
+            id="nav-local-prompts"
             onClick={() => {
               setCurrentView('local');
               setSelectedCategoryId(null);
@@ -513,6 +562,7 @@ function App() {
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <span className={`text-xs font-semibold uppercase tracking-wider opacity-50 ${!currentUser ? 'opacity-30' : ''}`}>{dict.categories}</span>
             <button 
+              id="btn-category-settings"
               onClick={() => setIsCategoryManagerOpen(true)}
               disabled={!currentUser}
               className={`p-1 rounded transition-colors ${!currentUser ? 'opacity-30 cursor-not-allowed' : styles.hoverItem}`}
@@ -757,7 +807,7 @@ function App() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
-                    {filteredPrompts.map(prompt => (
+                    {filteredPrompts.map((prompt, index) => (
                       <div 
                         key={prompt.id} 
                         className={`group relative flex flex-col p-5 rounded-2xl border transition-all duration-300 ${styles.card}`}
@@ -885,6 +935,7 @@ function App() {
                           isDark ? 'border-white/5' : 'border-black/5'
                         }`}>
                           <button
+                               id={index === 0 ? "btn-share-prompt-0" : undefined}
                                onClick={(e) => {
                                  e.stopPropagation();
                                  handleOpenShare(prompt);
@@ -958,6 +1009,15 @@ function App() {
           onClose={() => setShowWebViewWarning(false)}
         />
       )}
+
+      {/* Onboarding Tour */}
+      <OnboardingTour
+         steps={tourSteps}
+         isOpen={isTourOpen}
+         onClose={() => handleTourComplete()} // Use same handler to mark as complete if skipped
+         onComplete={handleTourComplete}
+         dict={dict}
+      />
     </div>
   );
 }

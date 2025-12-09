@@ -124,6 +124,16 @@ export interface Dictionary {
     webViewWarningMessageGeneric: string;
     webViewWarningInstructions: string;
     webViewWarningClose: string;
+    tourNext: string;
+    tourStart: string;
+    tourStep1Title: string;
+    tourStep1Content: string;
+    tourStep2Title: string;
+    tourStep2Content: string;
+    tourStep3Title: string;
+    tourStep3Content: string;
+    tourStep4Title: string;
+    tourStep4Content: string;
 }
 
 export interface AppState {
