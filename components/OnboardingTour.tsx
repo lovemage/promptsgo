@@ -17,9 +17,10 @@ interface OnboardingTourProps {
   onComplete: () => void;
   dict?: Dictionary;
   theme?: string;
+  onStepChange?: (index: number) => void;
 }
 
-const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict, theme }) => {
+const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict, theme, onStepChange }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   
@@ -79,9 +80,18 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
     if (isLastStep) {
       onComplete();
     } else {
-      setCurrentStepIndex(prev => prev + 1);
+      const nextIndex = currentStepIndex + 1;
+      setCurrentStepIndex(nextIndex);
+      onStepChange?.(nextIndex);
     }
   };
+
+  // Trigger onStepChange for initial step when opening
+  useEffect(() => {
+    if (isOpen) {
+      onStepChange?.(currentStepIndex);
+    }
+  }, [isOpen]); // Only when opening
 
   // Determine tooltip position
   const getTooltipStyle = () => {

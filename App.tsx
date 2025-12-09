@@ -302,8 +302,19 @@ function App() {
 
   const handleTourComplete = () => {
      setIsTourOpen(false);
+     setIsSidebarOpen(false); // Close sidebar after tour
      if (currentUser) {
         localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
+     }
+  };
+
+  const handleTourStepChange = (index: number) => {
+     // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
+     if (index <= 2) {
+        setIsSidebarOpen(true);
+     } else {
+        // Step 3 (Share) is in main area
+        setIsSidebarOpen(false);
      }
   };
 
@@ -1017,6 +1028,8 @@ function App() {
          onClose={() => handleTourComplete()} // Use same handler to mark as complete if skipped
          onComplete={handleTourComplete}
          dict={dict}
+         theme={theme}
+         onStepChange={handleTourStepChange}
       />
     </div>
   );
