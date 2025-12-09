@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { GlobalPrompt, Dictionary, ThemeId, User } from '../types';
+import { GlobalPrompt, Dictionary, ThemeId, User, LanguageCode } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
-import { getUniqueModelTags, getUniqueTags } from '../services/globalService';
+import { getUniqueModelTags, getUniqueTags, getAuthorPromptCounts } from '../services/globalService';
 import HeroCarousel from './HeroCarousel';
 import { LayoutGrid, Search, Filter, X } from 'lucide-react';
 // @ts-ignore
@@ -13,6 +13,7 @@ interface GlobalViewProps {
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  language: LanguageCode;
   viewMode?: 'all' | 'collection';
   collectedIds?: string[];
   onToggleCollect?: (id: string) => void;
@@ -23,7 +24,7 @@ interface GlobalViewProps {
   highlightPromptId?: string | null;
 }
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt, highlightPromptId }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt, highlightPromptId }) => {
   const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
   const [activeTag, setActiveTag] = useState('All');
   const [activeModel, setActiveModel] = useState('All');
@@ -31,6 +32,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
   const [availableTags, setAvailableTags] = useState<string[]>(['All']);
   const [search, setSearch] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState<GlobalPrompt | null>(null);
+  const [authorCounts, setAuthorCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const loadPrompts = async () => {
@@ -44,6 +46,13 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
         collectCount: globalCollectCounts[p.id] || 0
       }));
       setPrompts(promptsWithCollectCount);
+
+      // Load author prompt counts for badges
+      const authorIds = Array.from(new Set(data.map(p => p.authorId).filter(id => id && id !== 'anonymous')));
+      if (authorIds.length > 0) {
+        const counts = await getAuthorPromptCounts(authorIds);
+        setAuthorCounts(counts);
+      }
     };
     loadPrompts();
 
@@ -199,6 +208,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                       user={user}
                       dict={dict}
                       theme={theme}
+                      language={language}
+                      authorPromptCount={authorCounts[prompt.authorId] || 0}
                       isCollected={collectedIds.includes(prompt.id)}
                       onToggleCollect={onToggleCollect}
                       onShare={onShareGlobalPrompt}
@@ -234,6 +245,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                     user={user}
                     dict={dict}
                     theme={theme}
+                    language={language}
+                    authorPromptCount={authorCounts[selectedPrompt.authorId] || 0}
                     isCollected={collectedIds.includes(selectedPrompt.id)}
                     onToggleCollect={onToggleCollect}
                     onShare={onShareGlobalPrompt}

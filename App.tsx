@@ -20,6 +20,7 @@ import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
 import WebViewWarning from './components/WebViewWarning';
 import OnboardingTour, { TourStep } from './components/OnboardingTour';
+import CreatorBadge from './components/CreatorBadge';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 
 // Icon mapping helper
@@ -88,6 +89,9 @@ function App() {
   // Bulk Delete
   const [selectedPromptIds, setSelectedPromptIds] = useState<Set<string>>(new Set());
 
+  // Creator Badge - current user's prompt count
+  const [currentUserPromptCount, setCurrentUserPromptCount] = useState(0);
+
   // Deep Linking & Auth Listener
   useEffect(() => {
     // Check URL params
@@ -145,6 +149,15 @@ function App() {
     if (loaded.collectedGlobalIds) setCollectedGlobalIds(loaded.collectedGlobalIds);
     
     setSelectedCategoryId(null);
+
+    // Load current user's prompt count for badge
+    if (currentUser?.id) {
+      globalService.getAuthorPromptCount(currentUser.id).then(count => {
+        setCurrentUserPromptCount(count);
+      });
+    } else {
+      setCurrentUserPromptCount(0);
+    }
   }, [currentUser, isAuthLoading]);
 
   // Save Data
@@ -307,6 +320,12 @@ function App() {
 
   const handlePublishSuccess = () => {
     setRefreshGlobal(prev => prev + 1);
+    // Refresh current user's prompt count for badge
+    if (currentUser?.id) {
+      globalService.getAuthorPromptCount(currentUser.id).then(count => {
+        setCurrentUserPromptCount(count);
+      });
+    }
   };
 
   const handleShareGlobalPrompt = (globalPrompt: any) => {
@@ -694,20 +713,28 @@ function App() {
             {/* User Profile */}
             <div className="mb-3 px-2">
               {currentUser ? (
-                <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${styles.hoverItem}`}>
-                  {currentUser.photoURL ? (
-                    <img src={currentUser.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                      {currentUser.displayName?.charAt(0) || 'U'}
+                <div className="flex flex-col gap-2">
+                  <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${styles.hoverItem}`}>
+                    {currentUser.photoURL ? (
+                      <img src={currentUser.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                        {currentUser.displayName?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-medium truncate">{currentUser.displayName}</p>
+                      <button onClick={handleLogout} className="text-xs opacity-60 hover:underline flex items-center gap-1">
+                        <LogOut size={10} /> {dict.logout}
+                      </button>
+                    </div>
+                  </div>
+                  {/* Creator Badge */}
+                  {currentUserPromptCount >= 5 && (
+                    <div className="px-2">
+                      <CreatorBadge count={currentUserPromptCount} language={language} showTitle={true} />
                     </div>
                   )}
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-medium truncate">{currentUser.displayName}</p>
-                    <button onClick={handleLogout} className="text-xs opacity-60 hover:underline flex items-center gap-1">
-                      <LogOut size={10} /> {dict.logout}
-                    </button>
-                  </div>
                 </div>
               ) : (
                 <button 
@@ -851,6 +878,7 @@ function App() {
               user={currentUser}
               dict={dict}
               theme={theme}
+              language={language}
               viewMode={activeView === 'collection' ? 'collection' : 'all'}
               collectedIds={collectedGlobalIds}
               onToggleCollect={handleToggleCollect}

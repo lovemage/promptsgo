@@ -21,7 +21,7 @@ if (!fs.existsSync(publicDir)) {
 }
 
 // 基础 URL（可以从环境变量读取）
-const baseUrl = process.env.SITE_URL || 'https://promptsgo.com';
+const baseUrl = process.env.SITE_URL || 'https://promptsgo.cc';
 
 // 生成基础 sitemap
 const generateBasicSitemap = () => {

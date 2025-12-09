@@ -408,6 +408,51 @@ export const deleteBanner = async (id: string): Promise<void> => {
  * 静态文件位置：public/sitemap.xml
  * 构建脚本：scripts/generate-sitemap.js
  */
+// ========== Author Prompt Count API ==========
+
+export const getAuthorPromptCount = async (authorId: string): Promise<number> => {
+  if (!isSupabaseConfigured() || !authorId || authorId === 'anonymous') return 0;
+
+  const { count, error } = await supabase!
+    .from('global_prompts')
+    .select('*', { count: 'exact', head: true })
+    .eq('author_id', authorId);
+
+  if (error) {
+    console.error('Error fetching author prompt count:', error);
+    return 0;
+  }
+  return count || 0;
+};
+
+export const getAuthorPromptCounts = async (authorIds: string[]): Promise<Record<string, number>> => {
+  if (!isSupabaseConfigured() || authorIds.length === 0) return {};
+
+  // Filter out anonymous and empty IDs
+  const validIds = authorIds.filter(id => id && id !== 'anonymous');
+  if (validIds.length === 0) return {};
+
+  const { data, error } = await supabase!
+    .from('global_prompts')
+    .select('author_id')
+    .in('author_id', validIds);
+
+  if (error) {
+    console.error('Error fetching author prompt counts:', error);
+    return {};
+  }
+
+  const counts: Record<string, number> = {};
+  (data || []).forEach((row: any) => {
+    if (row.author_id) {
+      counts[row.author_id] = (counts[row.author_id] || 0) + 1;
+    }
+  });
+  return counts;
+};
+
+// ========== Sitemap ==========
+
 export const generateSitemapXML = async (): Promise<string> => {
   try {
     const prompts = await getGlobalPrompts();

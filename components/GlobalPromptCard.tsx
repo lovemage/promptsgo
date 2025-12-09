@@ -4,12 +4,15 @@ import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as 
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
+import CreatorBadge from './CreatorBadge';
 
 interface GlobalPromptCardProps {
   prompt: GlobalPrompt;
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  language: string;
+  authorPromptCount?: number;
   isCollected?: boolean;
   onToggleCollect?: (id: string) => void;
   onShare?: (prompt: GlobalPrompt) => void;
@@ -20,7 +23,7 @@ interface GlobalPromptCardProps {
   onOpenDetail?: (prompt: GlobalPrompt) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit, onDelete, isDetailView, onOpenDetail }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, language, authorPromptCount = 0, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit, onDelete, isDetailView, onOpenDetail }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -385,10 +388,13 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                     {prompt.title}
                  </h3>
                )}
-               <div className={`flex items-center gap-2 text-xs ${textMuted}`}>
+               <div className={`flex items-center gap-2 text-xs ${textMuted} flex-wrap`}>
                   <span className="flex items-center gap-1">
                     <UserIcon size={12} /> {prompt.authorName}
                   </span>
+                  {prompt.authorId !== 'anonymous' && authorPromptCount >= 5 && (
+                    <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" />
+                  )}
                   <span>•</span>
                   <span className="flex items-center gap-1">
                      <Star size={12} className="text-yellow-500 fill-yellow-500" /> 
