@@ -227,37 +227,53 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         const newComponentUrls: string[] = [];
         const originalCount = isEditingGlobalPrompt && (prompt as any).componentImages ? (prompt as any).componentImages.length : 0;
 
+        console.log('📸 Component Images Debug:', {
+            isEditing: isEditingGlobalPrompt,
+            originalCount,
+            previewsCount: componentPreviews.length,
+            filesCount: componentFiles.length,
+            previews: componentPreviews,
+            isCloudinaryConfigured: isCloudinaryConfigured()
+        });
+
         // Process all previews
         for (let i = 0; i < componentPreviews.length; i++) {
             const preview = componentPreviews[i];
 
             if (preview.startsWith('http')) {
                 // Old image URL - keep as is
+                console.log(`  [${i}] Old HTTP URL: ${preview.substring(0, 50)}...`);
                 newComponentUrls.push(preview);
             } else if (preview.startsWith('data:')) {
                 // Base64 image - check if it's a new file that needs uploading
                 if (isCloudinaryConfigured() && i >= originalCount) {
                     // This is a new file, try to upload it
                     const fileIndex = i - originalCount;
+                    console.log(`  [${i}] New base64 (fileIndex: ${fileIndex}), uploading...`);
                     if (fileIndex < componentFiles.length) {
                         const url = await upload(componentFiles[fileIndex]);
                         if (url) {
+                            console.log(`  [${i}] ✅ Uploaded to: ${url.substring(0, 50)}...`);
                             newComponentUrls.push(url);
                         } else {
                             // Upload failed, keep base64
+                            console.log(`  [${i}] ❌ Upload failed, keeping base64`);
                             newComponentUrls.push(preview);
                         }
                     } else {
                         // File not found, keep base64
+                        console.log(`  [${i}] ⚠️ File not found (fileIndex: ${fileIndex}), keeping base64`);
                         newComponentUrls.push(preview);
                     }
                 } else {
                     // Cloudinary not configured or old image, keep base64
+                    console.log(`  [${i}] Base64 (Cloudinary: ${isCloudinaryConfigured()}, isNew: ${i >= originalCount}), keeping as is`);
                     newComponentUrls.push(preview);
                 }
             }
         }
 
+        console.log('📸 Final component URLs:', newComponentUrls);
         componentUrls = newComponentUrls;
 
     } catch (error) {
@@ -285,20 +301,22 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         updatedAt: Date.now()
     };
 
+    console.log('💾 Saving prompt data:', { componentImages: componentUrls });
+
     if (isEditingGlobalPrompt && globalPromptId) {
       await updatePrompt({ ...promptData, id: globalPromptId } as GlobalPrompt);
-      alert('Updated Global Prompt!');
+      alert('✅ Updated Global Prompt!');
     } else {
-      await sharePrompt({ 
-          ...promptData, 
-          id: generateId(), 
-          rating: 0, 
-          ratingCount: 0, 
-          comments: [], 
-          views: 0, 
-          createdAt: Date.now() 
+      await sharePrompt({
+          ...promptData,
+          id: generateId(),
+          rating: 0,
+          ratingCount: 0,
+          comments: [],
+          views: 0,
+          createdAt: Date.now()
       } as GlobalPrompt);
-      alert('Published to Global Prompts!');
+      alert('✅ Published to Global Prompts!');
     }
 
     if (onSuccess) onSuccess();
