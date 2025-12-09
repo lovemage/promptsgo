@@ -402,30 +402,56 @@ export const deleteBanner = async (id: string): Promise<void> => {
 
 // ========== Sitemap ==========
 
+/**
+ * 生成动态 sitemap XML（用于前端调试或 API 端点）
+ * 注意：生产环境应使用静态 sitemap.xml 文件
+ * 静态文件位置：public/sitemap.xml
+ * 构建脚本：scripts/generate-sitemap.js
+ */
 export const generateSitemapXML = async (): Promise<string> => {
-  const prompts = await getGlobalPrompts();
-  const baseUrl = window.location.origin;
-  
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
-  
-  // Home page
-  xml += `  <url>\n`;
-  xml += `    <loc>${baseUrl}</loc>\n`;
-  xml += `    <changefreq>daily</changefreq>\n`;
-  xml += `    <priority>1.0</priority>\n`;
-  xml += `  </url>\n`;
+  try {
+    const prompts = await getGlobalPrompts();
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://promptsgo.com';
 
-  // Prompts
-  prompts.forEach(prompt => {
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Home page
     xml += `  <url>\n`;
-    xml += `    <loc>${baseUrl}/?promptId=${prompt.id}</loc>\n`;
-    xml += `    <lastmod>${new Date(prompt.updatedAt || prompt.createdAt).toISOString()}</lastmod>\n`;
-    xml += `    <changefreq>weekly</changefreq>\n`;
-    xml += `    <priority>0.8</priority>\n`;
+    xml += `    <loc>${baseUrl}</loc>\n`;
+    xml += `    <changefreq>daily</changefreq>\n`;
+    xml += `    <priority>1.0</priority>\n`;
     xml += `  </url>\n`;
-  });
 
-  xml += '</urlset>';
-  return xml;
+    // Global prompts view
+    xml += `  <url>\n`;
+    xml += `    <loc>${baseUrl}/?view=global</loc>\n`;
+    xml += `    <changefreq>daily</changefreq>\n`;
+    xml += `    <priority>0.9</priority>\n`;
+    xml += `  </url>\n`;
+
+    // Individual prompts (limit to first 50000 for sitemap size limit)
+    prompts.slice(0, 50000).forEach(prompt => {
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}/?promptId=${encodeURIComponent(prompt.id)}</loc>\n`;
+      xml += `    <lastmod>${new Date(prompt.updatedAt || prompt.createdAt).toISOString()}</lastmod>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += `  </url>\n`;
+    });
+
+    xml += '</urlset>';
+    return xml;
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    // Return minimal sitemap on error
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://promptsgo.com</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`;
+  }
 };

@@ -424,22 +424,26 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
          <div className="space-y-2 mt-2">
             <div className={`relative p-3 rounded-lg text-xs font-mono border ${isDark ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
                <p className="line-clamp-4">{prompt.positive}</p>
-               <button 
-                  onClick={() => handleCopy(prompt.positive, 'pos')}
-                  className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
-                >
-                  {copiedId === 'pos' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
-                </button>
+               {user && (
+                 <button 
+                    onClick={() => handleCopy(prompt.positive, 'pos')}
+                    className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
+                  >
+                    {copiedId === 'pos' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                  </button>
+               )}
             </div>
             {prompt.negative && (
               <div className={`relative p-2 rounded-lg text-xs font-mono border opacity-80 ${isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50/50 border-red-100'}`}>
                  <p className="line-clamp-2">{prompt.negative}</p>
-                 <button 
-                    onClick={() => handleCopy(prompt.negative!, 'neg')}
-                    className="absolute top-2 right-2 p-1.5 rounded bg-black/5 hover:bg-black/10 transition-colors"
-                  >
-                    {copiedId === 'neg' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
-                  </button>
+                 {user && (
+                   <button 
+                      onClick={() => handleCopy(prompt.negative!, 'neg')}
+                      className="absolute top-2 right-2 p-1.5 rounded bg-black/5 hover:bg-black/10 transition-colors"
+                    >
+                      {copiedId === 'neg' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                    </button>
+                 )}
               </div>
             )}
          </div>

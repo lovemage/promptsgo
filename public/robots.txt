@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /.env
+Disallow: /node_modules
+
+Sitemap: https://promptsgo.com/sitemap.xml
+
