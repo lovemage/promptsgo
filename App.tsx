@@ -117,6 +117,8 @@ function App() {
                // Ensure we are on local view for the tour
                setCurrentView('local');
                setIsTourOpen(true);
+               // Ensure sidebar is open for the first step
+               setIsSidebarOpen(true);
             }, 1000);
          }
       }

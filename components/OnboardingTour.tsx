@@ -28,6 +28,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
   useEffect(() => {
     if (!isOpen) return;
 
+    let rafId: number;
     const updateRect = () => {
       const step = steps[currentStepIndex];
       const el = document.getElementById(step.targetId);
@@ -35,39 +36,49 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
         const rect = el.getBoundingClientRect();
         // Add some padding
         const padding = 8;
-        setTargetRect({
-            x: rect.x - padding,
-            y: rect.y - padding,
-            width: rect.width + (padding * 2),
-            height: rect.height + (padding * 2),
-            top: rect.top - padding,
-            right: rect.right + padding,
-            bottom: rect.bottom + padding,
-            left: rect.left - padding,
-            toJSON: () => {}
-        } as DOMRect);
         
-        // Scroll element into view if needed
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Use requestAnimationFrame to avoid thrashing
+        rafId = requestAnimationFrame(() => {
+            setTargetRect({
+                x: rect.x - padding,
+                y: rect.y - padding,
+                width: rect.width + (padding * 2),
+                height: rect.height + (padding * 2),
+                top: rect.top - padding,
+                right: rect.right + padding,
+                bottom: rect.bottom + padding,
+                left: rect.left - padding,
+                toJSON: () => {}
+            } as DOMRect);
+        });
       } else {
-        // Element not found, verify if we can skip or wait?
-        console.warn(`Tour target ${step.targetId} not found.`);
-        // Just center it? Or null.
         setTargetRect(null);
       }
     };
 
-    updateRect();
-    window.addEventListener('resize', updateRect);
-    window.addEventListener('scroll', updateRect, true); // Capture scroll
+    // Initial update and scroll
+    const initStep = () => {
+        const step = steps[currentStepIndex];
+        const el = document.getElementById(step.targetId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Allow scroll to start before calculating rect
+            setTimeout(updateRect, 100); 
+            setTimeout(updateRect, 500); // Check again after settle
+        } else {
+            updateRect();
+        }
+    };
 
-    // Small delay to allow layout to settle (e.g. sidebar animation)
-    const timeout = setTimeout(updateRect, 500);
+    initStep();
+    
+    window.addEventListener('resize', updateRect);
+    window.addEventListener('scroll', updateRect, true); 
 
     return () => {
       window.removeEventListener('resize', updateRect);
       window.removeEventListener('scroll', updateRect, true);
-      clearTimeout(timeout);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [currentStepIndex, isOpen, steps]);
 
@@ -86,13 +97,10 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
     }
   };
 
-  // Trigger onStepChange for initial step when opening
-  useEffect(() => {
-    if (isOpen) {
-      onStepChange?.(0);  // Always start from step 0
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]); // Only when opening - intentionally not including onStepChange to avoid loops
+  // Note: We removed the useEffect that called onStepChange(0) on mount/open
+  // because it caused re-render loops in some cases or conflicted with Parent state updates.
+  // The Parent (App.tsx) should handle the initial state setup (e.g. opening sidebar) 
+  // when setting isTourOpen(true).
 
   // Determine tooltip position
   const getTooltipStyle = () => {
@@ -145,8 +153,6 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
 
     // Boundary check (keep within screen)
     // Adjust logic to prevent overflow
-    // We calculate "actual" position assuming the transform.
-    // If left - (tooltipWidth/2) < 10, shift right.
     
     // Only apply horizontal clamping for top/bottom
     if (position === 'top' || position === 'bottom') {
@@ -166,18 +172,13 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
         
         if (shiftX !== 0) {
             left += shiftX;
-            // Adjust transform if we shift `left`, but `left` is the anchor.
-            // Actually, if we change `left`, the element moves.
-            // But `transform` stays `translate(-50%, ...)` which centers on `left`.
-            // So shifting `left` effectively shifts the whole tooltip.
-            // This works.
         }
     }
 
     // Mobile vertical clamp
     if (isMobile) {
         if (top < 10) top = 10;
-        if (top > window.innerHeight - 10) top = window.innerHeight - 10; // Shouldn't happen often
+        if (top > window.innerHeight - 10) top = window.innerHeight - 10;
     }
     
     return { top, left, transform };
