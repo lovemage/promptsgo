@@ -16,9 +16,10 @@ interface OnboardingTourProps {
   onClose: () => void;
   onComplete: () => void;
   dict?: Dictionary;
+  theme?: string;
 }
 
-const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict }) => {
+const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict, theme }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   
@@ -87,12 +88,26 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
     if (!targetRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
     const spacing = 16;
-    const position = currentStep.position || 'bottom';
+    let position = currentStep.position || 'bottom';
     
+    // Mobile adjustment: Force 'top' or 'bottom' if screen width is small
+    const isMobile = window.innerWidth < 768;
+    if (isMobile && (position === 'left' || position === 'right')) {
+        // Decide based on vertical space
+        if (targetRect.bottom + 200 > window.innerHeight) {
+            position = 'top';
+        } else {
+            position = 'bottom';
+        }
+    }
+
     // Simple positioning logic
     let top = 0;
     let left = 0;
     let transform = '';
+
+    const tooltipWidth = 288; // w-72 = 18rem = 288px
+    const tooltipHeight = 200; // Estimated height
 
     switch (position) {
         case 'top':
@@ -117,11 +132,50 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
             break;
     }
 
-    // Boundary check (keep within screen) - Simplified
-    // Note: A robust solution would check window.innerWidth/Height and flip if needed.
+    // Boundary check (keep within screen)
+    // Adjust logic to prevent overflow
+    // We calculate "actual" position assuming the transform.
+    // If left - (tooltipWidth/2) < 10, shift right.
+    
+    // Only apply horizontal clamping for top/bottom
+    if (position === 'top' || position === 'bottom') {
+        const halfWidth = tooltipWidth / 2;
+        const screenWidth = window.innerWidth;
+        
+        let actualLeft = left - halfWidth;
+        let actualRight = left + halfWidth;
+        
+        let shiftX = 0;
+        
+        if (actualLeft < 10) {
+            shiftX = 10 - actualLeft;
+        } else if (actualRight > screenWidth - 10) {
+            shiftX = (screenWidth - 10) - actualRight;
+        }
+        
+        if (shiftX !== 0) {
+            left += shiftX;
+            // Adjust transform if we shift `left`, but `left` is the anchor.
+            // Actually, if we change `left`, the element moves.
+            // But `transform` stays `translate(-50%, ...)` which centers on `left`.
+            // So shifting `left` effectively shifts the whole tooltip.
+            // This works.
+        }
+    }
+
+    // Mobile vertical clamp
+    if (isMobile) {
+        if (top < 10) top = 10;
+        if (top > window.innerHeight - 10) top = window.innerHeight - 10; // Shouldn't happen often
+    }
     
     return { top, left, transform };
   };
+
+  const isJournal = theme === 'journal';
+  const primaryColor = isJournal ? 'bg-[#80c63c]' : 'bg-blue-500';
+  const buttonColor = isJournal ? 'bg-[#80c63c] hover:bg-[#6fae32] shadow-[#80c63c]/30' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20';
+  const textColor = isJournal ? 'text-[#2c2c2c]' : 'text-slate-800';
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col">
@@ -154,16 +208,16 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
             className="absolute transition-all duration-300 z-[101]"
             style={getTooltipStyle()}
         >
-            <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-2xl max-w-xs w-72 animate-in zoom-in-95 duration-300 border border-slate-200 dark:border-slate-700 relative">
+            <div className={`bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-2xl max-w-xs w-72 animate-in zoom-in-95 duration-300 border border-slate-200 dark:border-slate-700 relative ${isJournal ? 'font-[Poppins]' : ''}`}>
                 {/* Arrow (Visual decoration only for now) */}
                 
                 {/* Mascot / Icon */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-blue-500 rounded-full p-2 shadow-lg ring-4 ring-white dark:ring-slate-800">
+                <div className={`absolute -top-8 left-1/2 -translate-x-1/2 rounded-full p-2 shadow-lg ring-4 ring-white dark:ring-slate-800 ${primaryColor}`}>
                     <span className="text-2xl" role="img" aria-label="mascot">👋</span>
                 </div>
 
                 <div className="mt-4 text-center">
-                    <h3 className="font-bold text-lg mb-2 text-slate-800 dark:text-white">
+                    <h3 className={`font-bold text-lg mb-2 dark:text-white ${textColor}`}>
                         {currentStep.title}
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
@@ -177,7 +231,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
                             <div 
                                 key={idx} 
                                 className={`w-2 h-2 rounded-full transition-colors ${
-                                    idx === currentStepIndex ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'
+                                    idx === currentStepIndex ? primaryColor : 'bg-slate-200 dark:bg-slate-700'
                                 }`}
                             />
                         ))}
@@ -185,9 +239,9 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
 
                     <button
                         onClick={handleNext}
-                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-500/20"
+                        className={`flex items-center gap-1 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg ${buttonColor}`}
                     >
-                        {isLastStep ? (dict?.share || 'Start') : 'Next'}
+                        {isLastStep ? (dict?.share || 'Start') : (dict?.tourNext || 'Next')}
                         {isLastStep ? <Check size={16} /> : <ChevronRight size={16} />}
                     </button>
                 </div>
