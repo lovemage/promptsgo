@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Plus, Search, LayoutGrid, Settings, Trash2, 
   Copy, Edit2, Tag, Globe, ChevronsUpDown, Check, Palette as PaletteIcon,
@@ -314,7 +314,7 @@ function App() {
      }
   };
 
-  const handleTourStepChange = (index: number) => {
+  const handleTourStepChange = useCallback((index: number) => {
      // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
      if (index <= 2) {
         setIsSidebarOpen(true);
@@ -322,7 +322,7 @@ function App() {
         // Step 3 (Share) is in main area
         setIsSidebarOpen(false);
      }
-  };
+  }, []);
 
   const tourSteps = useMemo(() => [
      {

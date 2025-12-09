@@ -89,9 +89,10 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
   // Trigger onStepChange for initial step when opening
   useEffect(() => {
     if (isOpen) {
-      onStepChange?.(currentStepIndex);
+      onStepChange?.(0);  // Always start from step 0
     }
-  }, [isOpen]); // Only when opening
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only when opening - intentionally not including onStepChange to avoid loops
 
   // Determine tooltip position
   const getTooltipStyle = () => {
