@@ -23,6 +23,7 @@ interface ShareModalProps {
 const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme, isEditingGlobalPrompt = false, globalPromptId }) => {
   const [title, setTitle] = useState(prompt.title);
   const [description, setDescription] = useState(prompt.description || '');
+  const [sourceUrl, setSourceUrl] = useState('');
   const [positive, setPositive] = useState(prompt.positive);
   const [negative, setNegative] = useState(prompt.negative || '');
   const [note, setNote] = useState(prompt.note || '');
@@ -67,6 +68,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     if (isOpen && prompt) {
       setTitle(prompt.title);
       setDescription(prompt.description || '');
+      setSourceUrl((prompt as any).sourceUrl || '');
       setPositive(prompt.positive);
       setNegative(prompt.negative || '');
       setNote(prompt.note || '');
@@ -262,6 +264,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     const promptData = {
         title,
         description,
+        sourceUrl,
         positive,
         negative,
         note,
@@ -352,6 +355,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
                 <textarea 
                   value={description} onChange={e => setDescription(e.target.value)}
                   className={`w-full px-3 py-2 rounded-lg border outline-none text-sm h-20 resize-none ${inputClass}`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.originalSourceUrl}</label>
+                <input 
+                  value={sourceUrl} onChange={e => setSourceUrl(e.target.value)}
+                  placeholder="https://..."
+                  className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
                 />
               </div>
                <div>

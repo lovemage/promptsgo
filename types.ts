@@ -42,6 +42,7 @@ export interface GlobalPrompt extends Omit<Prompt, 'categoryIds'> {
   image?: string; // Result Image
   componentImages?: string[]; // Up to 4 component images
   video?: string; // Optional video
+  sourceUrl?: string; // Original source URL
   rating: number; // Average rating
   ratingCount: number;
   comments: Comment[];
@@ -114,6 +115,8 @@ export interface Dictionary {
   loginToComment: string;
     rating: string;
     image: string;
+    source: string;
+    originalSourceUrl: string;
     termsOfService: string;
     privacyPolicy: string;
     webViewWarningTitle: string;

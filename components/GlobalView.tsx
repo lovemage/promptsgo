@@ -5,7 +5,7 @@ import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
 import { getUniqueModelTags, getUniqueTags } from '../services/globalService';
 import HeroCarousel from './HeroCarousel';
-import { LayoutGrid, Search, Filter } from 'lucide-react';
+import { LayoutGrid, Search, Filter, X } from 'lucide-react';
 // @ts-ignore
 import modelsRaw from '../MODELS.MD?raw';
 
@@ -30,6 +30,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>(['All']);
   const [search, setSearch] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState<GlobalPrompt | null>(null);
 
   useEffect(() => {
     const loadPrompts = async () => {
@@ -204,11 +205,52 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, viewMode = '
                       onRefreshLocal={onRefreshLocal}
                       onEdit={onEditGlobalPrompt}
                       onDelete={onDeleteGlobalPrompt}
+                      onOpenDetail={setSelectedPrompt}
                    />
                 ))}
              </div>
           )}
        </div>
+
+       {/* Detail Modal */}
+       {selectedPrompt && (
+          <div 
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setSelectedPrompt(null)}
+          >
+             <div 
+                className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 custom-scrollbar"
+                onClick={e => e.stopPropagation()}
+             >
+                <button 
+                  onClick={() => setSelectedPrompt(null)}
+                  className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                >
+                   <X size={20} />
+                </button>
+                
+                <GlobalPromptCard
+                    prompt={selectedPrompt}
+                    user={user}
+                    dict={dict}
+                    theme={theme}
+                    isCollected={collectedIds.includes(selectedPrompt.id)}
+                    onToggleCollect={onToggleCollect}
+                    onShare={onShareGlobalPrompt}
+                    onRefreshLocal={onRefreshLocal}
+                    onEdit={(p) => {
+                       onEditGlobalPrompt?.(p);
+                       setSelectedPrompt(null);
+                    }}
+                    onDelete={(id) => {
+                       onDeleteGlobalPrompt?.(id);
+                       setSelectedPrompt(null);
+                    }}
+                    isDetailView={true}
+                />
+             </div>
+          </div>
+       )}
     </div>
   );
 };

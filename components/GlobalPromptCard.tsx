@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as ImageIcon, Bookmark, Share2, Edit2, Send, X, Mail, Trash2, ChevronLeft, ChevronRight, Link as LinkIcon } from 'lucide-react';
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
@@ -16,9 +16,11 @@ interface GlobalPromptCardProps {
   onRefreshLocal?: () => void;
   onEdit?: (prompt: GlobalPrompt) => void;
   onDelete?: (id: string) => void;
+  isDetailView?: boolean;
+  onOpenDetail?: (prompt: GlobalPrompt) => void;
 }
 
-const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit, onDelete }) => {
+const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialPrompt, user, dict, theme, isCollected, onToggleCollect, onShare, onRefreshLocal, onEdit, onDelete, isDetailView, onOpenDetail }) => {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -335,7 +337,16 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
          {/* Header */}
          <div className="flex justify-between items-start">
             <div>
-               <h3 className="font-bold text-lg leading-tight mb-1">{prompt.title}</h3>
+               {isDetailView ? (
+                 <h3 className="font-bold text-lg leading-tight mb-1">{prompt.title}</h3>
+               ) : (
+                 <h3 
+                    onClick={() => onOpenDetail?.(prompt)} 
+                    className="font-bold text-lg leading-tight mb-1 cursor-pointer hover:text-blue-500 transition-colors"
+                 >
+                    {prompt.title}
+                 </h3>
+               )}
                <div className={`flex items-center gap-2 text-xs ${textMuted}`}>
                   <span className="flex items-center gap-1">
                     <UserIcon size={12} /> {prompt.authorName}
@@ -426,6 +437,20 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                   >
                      <Trash2 size={16} />
                   </button>
+               )}
+
+               {/* Source Button (Detail View Only) */}
+               {isDetailView && prompt.sourceUrl && (
+                  <a
+                     href={prompt.sourceUrl}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     title={dict.source}
+                     className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-600 flex items-center gap-1.5"
+                  >
+                     <LinkIcon size={16} />
+                     <span className="text-xs font-semibold">{dict.source}</span>
+                  </a>
                )}
 
                {/* Collect button */}
