@@ -25,40 +25,46 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
            {title}
          </span>
       )}
-      
-      {/* Badges */}
-      <div className="flex items-center -space-x-1">
+
+      {/* Badges - Optimized Layout */}
+      <div className="flex items-center gap-0.5">
          {/* Gold Coins */}
          {Array.from({ length: golds }).map((_, i) => (
-            <img 
-               key={`gold-${i}`} 
-               src="/gold.png" 
-               alt="Gold" 
-               className="w-4 h-4 object-contain"
-               title={`Gold Badge`}
-            />
+            <div key={`gold-${i}`} className="relative w-5 h-5 flex items-center justify-center">
+               <img
+                  src="/gold.png"
+                  alt="Gold"
+                  className="w-full h-full object-contain drop-shadow-sm"
+                  title={`Gold Badge ${i + 1}`}
+                  loading="lazy"
+               />
+            </div>
          ))}
-         
+
          {/* Stars */}
          {Array.from({ length: stars }).map((_, i) => (
-            <img 
-               key={`star-${i}`} 
-               src="/star.png" 
-               alt="Star" 
-               className="w-4 h-4 object-contain"
-               title={`Star Badge`}
-            />
+            <div key={`star-${i}`} className="relative w-5 h-5 flex items-center justify-center">
+               <img
+                  src="/star.png"
+                  alt="Star"
+                  className="w-full h-full object-contain drop-shadow-sm"
+                  title={`Star Badge ${i + 1}`}
+                  loading="lazy"
+               />
+            </div>
          ))}
-         
+
          {/* Silvers */}
          {Array.from({ length: silvers }).map((_, i) => (
-            <img 
-               key={`silver-${i}`} 
-               src="/silver.png" 
-               alt="Silver" 
-               className="w-4 h-4 object-contain"
-               title={`Silver Badge`}
-            />
+            <div key={`silver-${i}`} className="relative w-5 h-5 flex items-center justify-center">
+               <img
+                  src="/silver.png"
+                  alt="Silver"
+                  className="w-full h-full object-contain drop-shadow-sm"
+                  title={`Silver Badge ${i + 1}`}
+                  loading="lazy"
+               />
+            </div>
          ))}
       </div>
     </div>
