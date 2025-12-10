@@ -6,8 +6,6 @@ import * as globalService from '../services/globalService';
 import { getUniqueModelTags, getUniqueTags, getAuthorPromptCounts } from '../services/globalService';
 import HeroCarousel from './HeroCarousel';
 import { LayoutGrid, Search, Filter, X } from 'lucide-react';
-// @ts-ignore
-import modelsRaw from '../MODELS.MD?raw';
 
 interface GlobalViewProps {
   user: User | null;
@@ -58,15 +56,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
 
     const loadTags = async () => {
         // Load model tags
-        let models: string[] = [];
-        if (modelsRaw) {
-           models = modelsRaw.split('\n')
-            .map((line: string) => line.trim())
-            .filter((line: string) => line.startsWith('- '))
-            .map((line: string) => line.substring(2));
-        }
         const dbModelTags = await getUniqueModelTags();
-        const combinedModels = Array.from(new Set([...models, ...dbModelTags])).sort();
+        const combinedModels = Array.from(new Set([...dbModelTags])).sort();
         setAvailableModels(combinedModels);
 
         // Load regular tags

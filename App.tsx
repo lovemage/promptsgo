@@ -6,7 +6,8 @@ import {
   // Icon Imports for mapping
   Palette, Code, PenTool, Camera, Music, Video, Gamepad2,
   Cpu, Zap, Heart, Star, Smile, Briefcase, Rocket, Coffee,
-  User, LogOut, StickyNote, Share2, Bookmark, Menu, CheckSquare, Square, Trash
+  User, LogOut, StickyNote, Share2, Bookmark, Menu, CheckSquare, Square, Trash,
+  Lock
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
@@ -20,6 +21,7 @@ import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
 import WebViewWarning from './components/WebViewWarning';
 import OnboardingTour, { TourStep } from './components/OnboardingTour';
+import UnlockModal from './components/UnlockModal';
 import CreatorBadge from './components/CreatorBadge';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 
@@ -80,6 +82,9 @@ function App() {
   const [isEditingGlobalPrompt, setIsEditingGlobalPrompt] = useState(false);
   const [editingGlobalPromptId, setEditingGlobalPromptId] = useState<string | null>(null);
   const [highlightPromptId, setHighlightPromptId] = useState<string | null>(null);
+
+  // Unlock Modal State
+  const [unlockModal, setUnlockModal] = useState<{ isOpen: boolean; themeName: string; required: number } | null>(null);
 
   // WebView Detection
   const [showWebViewWarning, setShowWebViewWarning] = useState(false);
@@ -530,6 +535,19 @@ function App() {
           logoColor: 'text-white',
           logoBg: '#547A9E'
         };
+      case 'greenble':
+        return {
+          app: 'bg-[#f0fdf4] text-[#14532d] font-sans', // Green-50, Green-950
+          sidebar: 'border-[#bbf7d0] bg-[#dcfce7] text-[#14532d]', // Green-200, Green-100
+          header: 'border-[#bbf7d0] bg-[#f0fdf4]/90',
+          card: 'bg-white hover:bg-[#f0fdf4] border-[#86efac] shadow-sm hover:shadow-md hover:border-[#22c55e]', // Green-300, Green-500
+          activeItem: 'bg-[#16a34a] text-white shadow-md', // Green-600
+          hoverItem: 'hover:bg-[#16a34a]/10 text-[#166534]', // Green-800
+          input: 'bg-white border-[#86efac] focus:border-[#16a34a] focus:ring-[#bbf7d0] placeholder-[#15803d]/50', // Green-700
+          positiveBox: 'bg-[#f0fdf4] border-[#bbf7d0] text-[#14532d]',
+          logoColor: 'text-[#16a34a]', // Green-600
+          logoBg: '#dcfce7'
+        };
       case 'light':
       default:
         return {
@@ -562,6 +580,7 @@ function App() {
     { id: 'journal', label: dict.themeJournal },
     { id: 'glass', label: dict.themeGlass },
     { id: 'royal', label: dict.themeRoyal },
+    { id: 'greenble', label: dict.themeGreenble },
   ];
 
   // Force global view if not logged in
@@ -832,23 +851,45 @@ function App() {
 
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isThemeMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
                    <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1">
-                    {themes.map(t => (
+                    {themes.map(t => {
+                      let requiredCount = 0;
+                      if (t.id === 'binder') requiredCount = 2;
+                      else if (t.id === 'glass') requiredCount = 3;
+                      else if (t.id === 'greenble') requiredCount = 5;
+
+                      const isLocked = requiredCount > 0 && currentUserPromptCount < requiredCount;
+                      
+                      return (
                       <button
                         key={t.id}
                         onClick={() => {
-                          setTheme(t.id);
-                          setIsThemeMenuOpen(false);
+                          if (isLocked) {
+                            setUnlockModal({
+                              isOpen: true,
+                              themeName: t.label,
+                              required: requiredCount
+                            });
+                          } else {
+                            setTheme(t.id);
+                            setIsThemeMenuOpen(false);
+                          }
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                           theme === t.id
                             ? 'text-blue-500 bg-blue-500/10'
-                            : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                            : isLocked 
+                               ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
+                               : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                         }`}
+                        title={isLocked ? `Share ${requiredCount} prompts to unlock` : ''}
                       >
-                        {t.label}
+                        <div className="flex items-center gap-2">
+                           {t.label}
+                           {isLocked && <Lock size={12} />}
+                        </div>
                         {theme === t.id && <Check size={14} />}
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               </div>
@@ -1194,6 +1235,20 @@ function App() {
          language={language}
          onStepChange={handleTourStepChange}
       />
+
+      {/* Unlock Theme Modal */}
+      {unlockModal && (
+        <UnlockModal
+          isOpen={unlockModal.isOpen}
+          onClose={() => setUnlockModal(null)}
+          themeName={unlockModal.themeName}
+          currentCount={currentUserPromptCount}
+          requiredCount={unlockModal.required}
+          dict={dict}
+          theme={theme}
+          language={language}
+        />
+      )}
     </div>
   );
 }

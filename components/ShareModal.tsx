@@ -5,8 +5,6 @@ import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
-// @ts-ignore
-import modelsRaw from '../MODELS.MD?raw';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -46,18 +44,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   // Load available models
   useEffect(() => {
     const loadModels = async () => {
-      // Parse models from MODELS.MD
-      let models: string[] = [];
-      if (modelsRaw) {
-        models = modelsRaw.split('\n')
-          .map((line: string) => line.trim())
-          .filter((line: string) => line.startsWith('- '))
-          .map((line: string) => line.substring(2));
-      }
-
       // Get model tags from database
       const dbModelTags = await getUniqueModelTags();
-      const combinedModels = Array.from(new Set([...models, ...dbModelTags])).sort();
+      const combinedModels = Array.from(new Set([...dbModelTags])).sort();
       setAvailableModels(combinedModels);
     };
     loadModels();

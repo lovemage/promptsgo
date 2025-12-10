@@ -1,6 +1,6 @@
 
 export type LanguageCode = 'en' | 'zh-TW' | 'ja';
-export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass' | 'royal';
+export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass' | 'royal' | 'greenble';
 
 export interface User {
   id: string;
