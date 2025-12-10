@@ -56,6 +56,16 @@
   animation-duration: 0.2s;
 }
 
+/* Progress Bar Animation */
+@keyframes progress-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+.animate-stripes {
+  animation: progress-stripes 1s linear infinite;
+}
+
 /* Prevent image saving */
 img {
   -webkit-user-select: none;

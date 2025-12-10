@@ -63,17 +63,11 @@ const UnlockModal: React.FC<UnlockModalProps> = ({
                     </div>
                     
                     {/* Badge Progression Preview - 3D Animated */}
-                    <div className="w-full h-5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] border border-slate-300 dark:border-slate-600 relative">
-                        <style>{`
-                          @keyframes progress-stripes {
-                            0% { background-position: 1rem 0; }
-                            100% { background-position: 0 0; }
-                          }
-                        `}</style>
+                    <div className="w-full h-6 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] border border-slate-300 dark:border-slate-600 relative">
                         <div 
-                           className="h-full rounded-full transition-all duration-1000 ease-out relative flex items-center"
+                           className="h-full rounded-full transition-all duration-1000 ease-out relative flex items-center min-w-[10px]"
                            style={{ 
-                             width: `${Math.min(100, (currentCount / requiredCount) * 100)}%`,
+                             width: `${Math.min(100, Math.max(2, (currentCount / requiredCount) * 100))}%`,
                              boxShadow: '0 2px 5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4)'
                            }}
                         >
@@ -81,11 +75,10 @@ const UnlockModal: React.FC<UnlockModalProps> = ({
                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500" />
                            
                            {/* Animated Stripes Texture */}
-                           <div className="absolute inset-0 w-full h-full"
+                           <div className="absolute inset-0 w-full h-full animate-stripes"
                                 style={{
                                   backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, transparent 75%, transparent)',
-                                  backgroundSize: '1rem 1rem',
-                                  animation: 'progress-stripes 1s linear infinite'
+                                  backgroundSize: '1rem 1rem'
                                 }}
                            />
                            
