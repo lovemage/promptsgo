@@ -855,7 +855,9 @@ function App() {
                       let requiredCount = 0;
                       if (t.id === 'binder') requiredCount = 2;
                       else if (t.id === 'glass') requiredCount = 3;
-                      else if (t.id === 'greenble') requiredCount = 5;
+                      else if (t.id === 'dark') requiredCount = 5;
+                      else if (t.id === 'royal') requiredCount = 8;
+                      else if (t.id === 'greenble') requiredCount = 8;
 
                       const isLocked = requiredCount > 0 && currentUserPromptCount < requiredCount;
                       

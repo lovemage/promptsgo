@@ -62,13 +62,38 @@ const UnlockModal: React.FC<UnlockModalProps> = ({
                         </div>
                     </div>
                     
-                    {/* Badge Progression Preview */}
-                    <div className="w-full h-1 bg-gray-200 dark:bg-gray-600 rounded-full mt-2 overflow-hidden">
+                    {/* Badge Progression Preview - 3D Animated */}
+                    <div className="w-full h-5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] border border-slate-300 dark:border-slate-600 relative">
+                        <style>{`
+                          @keyframes progress-stripes {
+                            0% { background-position: 1rem 0; }
+                            100% { background-position: 0 0; }
+                          }
+                        `}</style>
                         <div 
-                           className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                           style={{ width: `${Math.min(100, (currentCount / requiredCount) * 100)}%` }}
-                        />
+                           className="h-full rounded-full transition-all duration-1000 ease-out relative flex items-center"
+                           style={{ 
+                             width: `${Math.min(100, (currentCount / requiredCount) * 100)}%`,
+                             boxShadow: '0 2px 5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4)'
+                           }}
+                        >
+                           {/* Colorful Gradient Background */}
+                           <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500" />
+                           
+                           {/* Animated Stripes Texture */}
+                           <div className="absolute inset-0 w-full h-full"
+                                style={{
+                                  backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, transparent 75%, transparent)',
+                                  backgroundSize: '1rem 1rem',
+                                  animation: 'progress-stripes 1s linear infinite'
+                                }}
+                           />
+                           
+                           {/* Shine Effect */}
+                           <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full" />
+                        </div>
                     </div>
+
                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         {requiredCount - currentCount > 0 
                            ? `${requiredCount - currentCount} more to go!` 
