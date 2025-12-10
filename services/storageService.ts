@@ -1,6 +1,7 @@
 
 import { AppState, Category, Prompt, LanguageCode } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_PROMPTS } from '../constants';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_KEY = 'promptsgo_data_v1';
 
@@ -92,6 +93,45 @@ export const saveState = (state: Partial<AppState>, userId?: string) => {
   } catch (err) {
     console.error("Could not save state", err);
   }
+};
+
+export const saveRemoteState = async (userId: string, state: Partial<AppState>) => {
+  if (!isSupabaseConfigured() || !userId) return;
+  
+  const { prompts, categories, theme, language, collectedGlobalIds } = state;
+  const data = { prompts, categories, theme, language, collectedGlobalIds };
+  
+  try {
+    const { error } = await supabase!
+      .from('users')
+      .update({ data, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+      
+    if (error) {
+       console.error("Failed to save remote state:", error);
+    }
+  } catch (err) {
+    console.error("Error saving remote state:", err);
+  }
+};
+
+export const loadRemoteState = async (userId: string): Promise<Partial<AppState> | null> => {
+   if (!isSupabaseConfigured() || !userId) return null;
+   
+   try {
+     const { data, error } = await supabase!
+       .from('users')
+       .select('data')
+       .eq('id', userId)
+       .single();
+       
+     if (error || !data || !data.data) return null;
+     
+     return data.data as Partial<AppState>;
+   } catch (err) {
+     console.error("Error loading remote state:", err);
+     return null;
+   }
 };
 
 export const generateId = (): string => {

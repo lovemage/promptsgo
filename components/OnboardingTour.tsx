@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronRight, Check } from 'lucide-react';
-import { Dictionary } from '../types';
+import { Dictionary, ThemeId } from '../types';
 import CreatorBadge from './CreatorBadge';
 
 export interface TourStep {
@@ -18,7 +18,7 @@ interface OnboardingTourProps {
   onClose: () => void;
   onComplete: () => void;
   dict?: Dictionary;
-  theme?: string;
+  theme?: ThemeId;
   language?: string;
   onStepChange?: (index: number) => void;
 }
@@ -243,7 +243,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
                     {currentStep.showBadgePreview && (
                         <div className="flex flex-col items-center gap-2 mb-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700/30">
                             <div className="flex items-center gap-3">
-                                <CreatorBadge count={5} language={language} showTitle={true} />
+                                <CreatorBadge count={5} language={language} showTitle={true} theme={theme} />
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                                 <img src="/silver.png" alt="Silver" className="w-5 h-5" />

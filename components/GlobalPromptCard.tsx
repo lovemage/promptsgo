@@ -393,7 +393,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                     <UserIcon size={12} /> {prompt.authorName}
                   </span>
                   {prompt.authorId !== 'anonymous' && authorPromptCount >= 5 && (
-                    <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" />
+                    <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" theme={theme} />
                   )}
                   <span>•</span>
                   <span className="flex items-center gap-1">

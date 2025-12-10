@@ -1,20 +1,46 @@
 import React from 'react';
 import { calculateBadgeInfo } from '../utils/badgeUtils';
+import { ThemeId } from '../types';
 
 interface CreatorBadgeProps {
   count: number;
   language: string;
   className?: string;
   showTitle?: boolean;
+  theme?: ThemeId;
 }
 
-const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className = '', showTitle = true }) => {
+const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className = '', showTitle = true, theme = 'light' }) => {
   const { silvers, stars, golds, title, level } = calculateBadgeInfo(count, language);
 
   if (level === 0) return null;
 
+  // Calculate progress (0-100%)
+  // 5 prompts resets progress (0 -> 20 -> 40 -> 60 -> 80 -> 0)
+  const progress = ((count % 5) / 5) * 100;
+
+  const getProgressColor = () => {
+    switch (theme) {
+      case 'journal': return 'bg-[#80c63c]';
+      case 'dark': return 'bg-blue-500';
+      case 'binder': return 'bg-slate-600';
+      case 'glass': return 'bg-blue-400';
+      case 'royal': return 'bg-[#547A9E]';
+      default: return 'bg-blue-600';
+    }
+  };
+
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex flex-col justify-center ${className}`}>
+      {/* Progress Bar */}
+      <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-0.5 opacity-80">
+        <div 
+          className={`h-full transition-all duration-300 ${getProgressColor()}`} 
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="flex items-center gap-1">
       {/* Title */}
       {showTitle && (
          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border whitespace-nowrap ${
@@ -67,6 +93,7 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
             </div>
          ))}
       </div>
+    </div>
     </div>
   );
 };

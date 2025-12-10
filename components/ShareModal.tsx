@@ -524,7 +524,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 transition-all flex items-center gap-2"
           >
             {isUploading ? (
-              <><Loader2 size={16} className="animate-spin" /> Uploading...</>
+              <><span className="custom-loader !w-4 !h-4 !border-2"></span> Uploading...</>
             ) : (
               <><Upload size={16} /> {isEditingGlobalPrompt ? 'Update' : dict.publish}</>
             )}

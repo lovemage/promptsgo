@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './types';
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
-import { loadState, saveState, generateId } from './services/storageService';
+import { loadState, saveState, loadRemoteState, saveRemoteState, generateId } from './services/storageService';
 import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
 import * as globalService from './services/globalService';
 import PromptModal from './components/PromptModal';
@@ -150,8 +150,19 @@ function App() {
     
     setSelectedCategoryId(null);
 
-    // Load current user's prompt count for badge
+    // Sync from Cloud if logged in
     if (currentUser?.id) {
+      loadRemoteState(currentUser.id).then(remote => {
+         if (remote) {
+            if (remote.prompts) setPrompts(remote.prompts);
+            if (remote.categories) setCategories(remote.categories);
+            if (remote.collectedGlobalIds) setCollectedGlobalIds(remote.collectedGlobalIds);
+            if (remote.language) setLanguage(remote.language);
+            if (remote.theme) setTheme(remote.theme);
+         }
+      });
+
+      // Load current user's prompt count for badge
       globalService.getAuthorPromptCount(currentUser.id).then(count => {
         setCurrentUserPromptCount(count);
       });
@@ -163,7 +174,17 @@ function App() {
   // Save Data
   useEffect(() => {
     if (isAuthLoading) return;
-    saveState({ prompts, categories, language, theme, collectedGlobalIds }, currentUser?.id);
+    
+    const state = { prompts, categories, language, theme, collectedGlobalIds };
+    saveState(state, currentUser?.id);
+    
+    // Sync to Cloud if logged in (Debounced)
+    if (currentUser?.id) {
+       const timer = setTimeout(() => {
+          saveRemoteState(currentUser.id, state);
+       }, 2000);
+       return () => clearTimeout(timer);
+    }
   }, [prompts, categories, language, theme, collectedGlobalIds, currentUser, isAuthLoading]);
 
   const dict = TRANSLATIONS[language];
@@ -739,7 +760,7 @@ function App() {
                   {/* Creator Badge */}
                   {currentUserPromptCount >= 5 && (
                     <div className="px-2">
-                      <CreatorBadge count={currentUserPromptCount} language={language} showTitle={true} />
+                      <CreatorBadge count={currentUserPromptCount} language={language} showTitle={true} theme={theme} />
                     </div>
                   )}
                 </div>
