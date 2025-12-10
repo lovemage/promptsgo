@@ -134,6 +134,8 @@ export interface Dictionary {
     tourStep3Content: string;
     tourStep4Title: string;
     tourStep4Content: string;
+    tourStep5Title: string;
+    tourStep5Content: string;
     tourComplete: string;
     selectAll: string;
     deselectAll: string;

@@ -2,12 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronRight, Check } from 'lucide-react';
 import { Dictionary } from '../types';
+import CreatorBadge from './CreatorBadge';
 
 export interface TourStep {
   targetId: string;
   title: string;
   content: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  showBadgePreview?: boolean;
 }
 
 interface OnboardingTourProps {
@@ -17,10 +19,11 @@ interface OnboardingTourProps {
   onComplete: () => void;
   dict?: Dictionary;
   theme?: string;
+  language?: string;
   onStepChange?: (index: number) => void;
 }
 
-const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict, theme, onStepChange }) => {
+const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose, onComplete, dict, theme, language = 'en', onStepChange }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   
@@ -232,9 +235,25 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ steps, isOpen, onClose,
                     <h3 className={`font-bold text-lg mb-2 dark:text-white ${textColor}`}>
                         {currentStep.title}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
                         {currentStep.content}
                     </p>
+                    
+                    {/* Badge Preview for Step 5 */}
+                    {currentStep.showBadgePreview && (
+                        <div className="flex flex-col items-center gap-2 mb-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700/30">
+                            <div className="flex items-center gap-3">
+                                <CreatorBadge count={5} language={language} showTitle={true} />
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <img src="/silver.png" alt="Silver" className="w-5 h-5" />
+                                <span className="text-xs text-slate-500">→</span>
+                                <img src="/star.png" alt="Star" className="w-5 h-5" />
+                                <span className="text-xs text-slate-500">→</span>
+                                <img src="/gold.png" alt="Gold" className="w-5 h-5" />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex justify-between items-center">

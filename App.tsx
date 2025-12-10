@@ -424,6 +424,13 @@ function App() {
         title: dict.tourStep4Title,
         content: dict.tourStep4Content,
         position: 'left' as const
+     },
+     {
+        targetId: 'btn-share-prompt-0',
+        title: dict.tourStep5Title,
+        content: dict.tourStep5Content,
+        position: 'left' as const,
+        showBadgePreview: true
      }
   ], [dict]);
 
@@ -946,57 +953,16 @@ function App() {
                         key={prompt.id}
                         className={`group relative flex flex-col p-5 rounded-2xl border transition-all duration-300 ${selectedPromptIds.has(prompt.id) ? 'ring-2 ring-blue-500' : ''} ${styles.card}`}
                       >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-start gap-2 flex-1">
-                            <input
-                              type="checkbox"
-                              checked={selectedPromptIds.has(prompt.id)}
-                              onChange={() => handleToggleSelectPrompt(prompt.id)}
-                              className="mt-1 w-4 h-4 rounded cursor-pointer"
-                            />
-                            <h3 className={`font-semibold text-lg line-clamp-1 transition-colors pr-2 ${theme === 'journal' ? 'group-hover:text-[#0c9e2d]' : 'group-hover:text-blue-500'}`}>
-                              {prompt.title}
-                            </h3>
-                          </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 relative z-20">
-                            
-                            {/* Note Button */}
-                            <div className="group/note relative">
-                               <button 
-                                  disabled={!prompt.note}
-                                  className={`p-1.5 rounded-md transition-colors ${!prompt.note ? 'opacity-30 cursor-default' : styles.hoverItem}`}
-                                  title={prompt.note ? dict.note : ''}
-                                >
-                                  <StickyNote size={14} />
-                                </button>
-                                {prompt.note && (
-                                  <div className={`absolute right-0 bottom-full mb-2 w-48 p-3 rounded-lg text-xs shadow-xl z-50 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity duration-200 ${
-                                    isDark ? 'bg-black text-white' : 'bg-slate-800 text-white'
-                                  }`}>
-                                    <p className="font-semibold mb-1 opacity-70">{dict.note}:</p>
-                                    <p className="whitespace-pre-wrap">{prompt.note}</p>
-                                    <div className={`absolute bottom-[-4px] right-2 w-2 h-2 rotate-45 ${
-                                      isDark ? 'bg-black' : 'bg-slate-800'
-                                    }`}></div>
-                                  </div>
-                                )}
-                            </div>
-
-                            <button 
-                              onClick={() => handleOpenEdit(prompt)}
-                              className={`p-1.5 rounded-md transition-colors ${styles.hoverItem}`}
-                              title={dict.edit}
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button 
-                              onClick={() => handleDeletePrompt(prompt.id)}
-                              className="p-1.5 rounded-md hover:bg-red-500/10 hover:text-red-500"
-                              title={dict.delete}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
+                        <div className="flex items-start gap-2 mb-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedPromptIds.has(prompt.id)}
+                            onChange={() => handleToggleSelectPrompt(prompt.id)}
+                            className="mt-1.5 w-4 h-4 rounded cursor-pointer shrink-0"
+                          />
+                          <h3 className={`font-semibold text-lg leading-tight transition-colors ${theme === 'journal' ? 'group-hover:text-[#0c9e2d]' : 'group-hover:text-blue-500'}`}>
+                            {prompt.title}
+                          </h3>
                         </div>
 
                         {prompt.description && (
@@ -1072,21 +1038,65 @@ function App() {
                           </div>
                         )}
 
-                        {/* Footer: Share & Creation Time */}
+                        {/* Footer: Actions & Creation Time */}
                         <div className={`mt-3 pt-2 border-t flex justify-between items-center ${
                           isDark ? 'border-white/5' : 'border-black/5'
                         }`}>
-                          <button
+                          <div className="flex items-center gap-1">
+                            {/* Note Icon with Tooltip */}
+                            {prompt.note && (
+                              <div className="relative group/note">
+                                <div className={`absolute bottom-full left-0 mb-2 w-48 p-2 rounded-lg text-xs shadow-xl z-20 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity ${
+                                  isDark ? 'bg-slate-800 text-slate-200 border border-slate-700' : 'bg-white text-slate-600 border border-slate-200'
+                                }`}>
+                                  {prompt.note}
+                                </div>
+                                <button
+                                  className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 ${styles.hoverItem}`}
+                                >
+                                  <StickyNote size={14} />
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Edit Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEdit(prompt);
+                              }}
+                              className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 ${styles.hoverItem}`}
+                              title={dict.edit}
+                            >
+                              <Edit2 size={14} />
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePrompt(prompt.id);
+                              }}
+                              className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20`}
+                              title={dict.delete}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+
+                            {/* Share Button */}
+                            <button
                                id={index === 0 ? "btn-share-prompt-0" : undefined}
                                onClick={(e) => {
                                  e.stopPropagation();
                                  handleOpenShare(prompt);
                                }}
-                               className={`p-1 rounded-md transition-colors opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10`}
+                               className={`p-1.5 rounded-md transition-colors opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 ${theme === 'journal' ? 'text-[#0c9e2d]' : 'text-blue-500'}`}
                                title={dict.share}
                             >
-                               <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M340-320h300q50 0 85-35t35-85q0-50-35-85t-85-35q-8-58-53-99t-101-41q-51 0-92.5 26T332-600q-57 5-94.5 43.5T200-460q0 58 41 99t99 41Zm0-80q-25 0-42.5-17.5T280-460q0-25 17.5-42.5T340-520h60v-20q0-33 23.5-56.5T480-620q33 0 56.5 23.5T560-540v60h80q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400H340ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
-                          </button>
+                               <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M340-320h300q50 0 85-35t35-85q0-50-35-85t-85-35q-8-58-53-99t-101-41q-51 0-92.5 26T332-600q-57 5-94.5 43.5T200-460q0 58 41 99t99 41Zm0-80q-25 0-42.5-17.5T280-460q0-25 17.5-42.5T340-520h60v-20q0-33 23.5-56.5T480-620q33 0 56.5 23.5T560-540v60h80q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400H340ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                            </button>
+                          </div>
+
                           <span className="text-[10px] opacity-40">
                             {new Date(prompt.createdAt).toLocaleString(language === 'zh-TW' ? 'zh-TW' : language === 'ja' ? 'ja-JP' : 'en-US', {
                               year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -1160,6 +1170,7 @@ function App() {
          onComplete={handleTourComplete}
          dict={dict}
          theme={theme}
+         language={language}
          onStepChange={handleTourStepChange}
       />
     </div>
