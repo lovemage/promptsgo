@@ -143,6 +143,7 @@ export interface Dictionary {
     deleteSelected: string;
 
   changeAvatar: string;
+  changeNickname: string;
   chooseAvatarTitle: string;
   levelLabel: string;
   select: string;

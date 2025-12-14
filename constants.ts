@@ -308,6 +308,7 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     deleteSelected: 'Delete Selected',
 
     changeAvatar: 'Change avatar',
+    changeNickname: 'Change nickname',
     chooseAvatarTitle: 'Choose Avatar',
     levelLabel: 'Level',
     select: 'Select',
@@ -408,6 +409,7 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     deleteSelected: '刪除已選',
 
     changeAvatar: '更換頭像',
+    changeNickname: '更換暱稱',
     chooseAvatarTitle: '選擇頭像',
     levelLabel: '等級',
     select: '選擇',
@@ -508,6 +510,7 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     deleteSelected: '選択したものを削除',
 
     changeAvatar: 'アバター変更',
+    changeNickname: 'ニックネーム変更',
     chooseAvatarTitle: 'アバター選択',
     levelLabel: 'レベル',
     select: '選択',
@@ -608,6 +611,7 @@ export const TRANSLATIONS: Record<LanguageCode, Dictionary> = {
     deleteSelected: '선택 삭제',
 
     changeAvatar: '아바타 변경',
+    changeNickname: '닉네임 변경',
     chooseAvatarTitle: '아바타 선택',
     levelLabel: '레벨',
     select: '선택',

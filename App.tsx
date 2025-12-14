@@ -455,7 +455,9 @@ function App() {
   useEffect(() => {
     if (!currentUser?.id) return;
     const lvl = getEffectiveBadgeLevel(currentUserPromptCount, language);
-    nicknameService.awardNicknameTokensForLevel(currentUser.id, lvl).catch(() => {
+    nicknameService.awardNicknameTokensForLevel(currentUser.id, lvl).then(p => {
+      if (p) setNicknameProfile(p);
+    }).catch(() => {
       // ignore
     });
   }, [currentUser?.id, currentUserPromptCount, language]);

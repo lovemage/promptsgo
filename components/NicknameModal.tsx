@@ -11,13 +11,14 @@ type NicknamesJson = {
 interface NicknameModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSaved?: () => void;
   userId: string;
   theme: ThemeId;
   language: LanguageCode;
   currentLevel: number;
 }
 
-const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, userId, theme, language, currentLevel }) => {
+const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, onSaved, userId, theme, language, currentLevel }) => {
   const [profile, setProfile] = useState<nicknameService.NicknameProfile | null>(null);
   const [nicknamesData, setNicknamesData] = useState<NicknamesJson | null>(null);
   const [candidate, setCandidate] = useState<{ nickname: string; icon: string } | null>(null);
@@ -82,23 +83,23 @@ const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, userId, 
     const icon = icons[Math.floor(Math.random() * icons.length)];
 
     const nextNickname = `${pickLangText(prefix)}${pickLangText(suffix)}`;
-    const nextTokens = profile.nicknameTokens - 1;
-
     setCandidate({ nickname: nextNickname, icon });
-    setProfile({ ...profile, nicknameTokens: nextTokens });
-
-    // Persist immediately so refresh can't restore chances.
-    nicknameService.setNicknameTokens(userId, nextTokens);
   };
 
   const confirm = async () => {
     if (!candidate) return;
+    if (!profile) return;
+    if (profile.nicknameTokens <= 0) return;
 
     setIsSaving(true);
     try {
+      const nextTokens = Math.max(0, profile.nicknameTokens - 1);
       await nicknameService.saveNickname(userId, candidate.nickname, candidate.icon);
+      await nicknameService.setNicknameTokens(userId, nextTokens);
       const refreshed = await nicknameService.getNicknameProfile(userId);
       setProfile(refreshed);
+      setCandidate(null);
+      onSaved?.();
       onClose();
     } finally {
       setIsSaving(false);
@@ -111,6 +112,10 @@ const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, userId, 
   if (theme === 'dark') panelClass = 'bg-slate-800 text-white border-white/10';
   if (theme === 'binder') panelClass = 'bg-[#1e1e1e] text-slate-200 border-white/10';
   if (theme === 'glass') panelClass = 'bg-white/60 text-slate-900 border-white/20 backdrop-blur-xl';
+
+  const cardClass = `p-3 rounded-xl border ${
+    isDark ? 'border-white/10 bg-white/5' : theme === 'glass' ? 'border-white/20 bg-white/20' : 'border-slate-200 bg-slate-50/60'
+  }`;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -135,14 +140,14 @@ const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, userId, 
         </div>
 
         <div className="p-4 space-y-3">
-          <div className={`p-3 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : theme === 'glass' ? 'border-white/20 bg-white/20' : 'border-slate-200 bg-slate-50'}`}>
+          <div className={cardClass}>
             <div className="text-xs opacity-70 mb-1">{t('目前暱稱', 'Current', '現在', '현재')}</div>
             <div className="text-sm font-semibold">
               {(profile?.nicknameIcon || '') + (profile?.nickname || t('（尚未設定）', '(not set)', '（未設定）', '(미설정)'))}
             </div>
           </div>
 
-          <div className={`p-3 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : theme === 'glass' ? 'border-white/20 bg-white/20' : 'border-slate-200 bg-slate-50'}`}>
+          <div className={cardClass}>
             <div className="text-xs opacity-70 mb-1">{t('候選', 'Candidate', '候補', '후보')}</div>
             <div className="text-xl font-bold tabular-nums">
               {candidate ? `${candidate.icon}${candidate.nickname}` : t('按下骰子產生暱稱', 'Tap dice to roll', 'サイコロで生成', '주사위를 눌러 생성')}
@@ -173,7 +178,7 @@ const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, userId, 
 
           <button
             onClick={confirm}
-            disabled={!candidate || isSaving}
+            disabled={!candidate || isSaving || (profile?.nicknameTokens ?? 0) <= 0}
             className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
               theme === 'journal'
                 ? 'bg-[#80c63c] hover:bg-[#6fae32] text-white disabled:opacity-40'
