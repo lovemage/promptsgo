@@ -13,11 +13,25 @@ interface CreatorBadgeProps {
 const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className = '', showTitle = true, theme = 'light' }) => {
   const { silvers, stars, golds, title, level } = calculateBadgeInfo(count, language);
 
-  // Calculate progress (0-100%)
-  // New users should still see a small progress bar (min 5%).
-  // For exact boundaries (e.g. 5, 10, 15...), show 100% instead of 0%.
-  const rawProgress = ((count % 5) / 5) * 100;
-  const progress = count === 0 ? 5 : rawProgress === 0 ? 100 : Math.max(5, rawProgress);
+  const getLevelThreshold = (lvl: number) => {
+    if (lvl <= 0) return 0;
+    if (lvl <= 4) return lvl * 5;
+    if (lvl === 5) return 25;
+    if (lvl === 6) return 50;
+    if (lvl === 7) return 75;
+    if (lvl === 8) return 100;
+    // Gold: level 9 => 1 gold (125). Each additional gold adds 125.
+    return (lvl - 8) * 125;
+  };
+
+  // Progress mode B: percentage is progress toward the NEXT level threshold.
+  // Share/delete affects count, and progress can go up/down until the next level is reached.
+  const clampedLevel = Math.max(0, Math.min(15, level));
+  const base = getLevelThreshold(clampedLevel);
+  const next = getLevelThreshold(Math.min(15, clampedLevel + 1));
+  const denom = Math.max(1, next - base);
+  const rawProgress = ((count - base) / denom) * 100;
+  const progress = count === 0 ? 5 : Math.min(100, Math.max(5, rawProgress));
 
   const getProgressColor = () => {
     switch (theme) {
@@ -35,7 +49,7 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
       {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-0.5 opacity-80">
         <div 
-          className={`h-full transition-all duration-300 ${getProgressColor()}`} 
+          className={`h-full transition-all duration-700 ${getProgressColor()}`} 
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -10,13 +10,25 @@ interface UpgradeGuideViewProps {
 }
 
 const UpgradeGuideView: React.FC<UpgradeGuideViewProps> = ({ language, theme, dict, onBack }) => {
-  const isDark = theme === 'dark';
+  const isDark = theme === 'dark' || theme === 'binder';
 
-  const containerClass = "max-w-5xl mx-auto p-6 md:p-10 bg-white dark:bg-slate-900/40 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl my-8";
+  const containerClass = `max-w-5xl mx-auto p-6 md:p-10 shadow-sm border rounded-xl my-8 ${
+    theme === 'binder'
+      ? 'bg-[#2c2c2c] text-white border-white/10'
+      : theme === 'dark'
+      ? 'bg-slate-900/40 text-white border-white/10'
+      : theme === 'glass'
+      ? 'bg-white/20 text-slate-900 border-white/20 backdrop-blur-xl'
+      : theme === 'journal'
+      ? 'bg-white text-slate-900 border-slate-200'
+      : 'bg-white text-slate-900 border-slate-200'
+  }`;
   const titleClass = "text-2xl md:text-3xl font-bold mb-2";
   const mutedClass = "text-sm opacity-70";
   const sectionTitleClass = "text-lg md:text-xl font-semibold mt-8 mb-3";
-  const cardClass = "p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40";
+  const cardClass = `p-4 rounded-xl border ${
+    isDark ? 'border-white/10 bg-white/5' : theme === 'glass' ? 'border-white/20 bg-white/20' : 'border-slate-200 bg-slate-50/60'
+  }`;
 
   const t = (ko: string, en: string, zh: string, ja: string) => {
     switch (language) {
@@ -120,7 +132,7 @@ const UpgradeGuideView: React.FC<UpgradeGuideViewProps> = ({ language, theme, di
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {themeRules.map(r => (
-            <div key={r.id} className={`flex items-center justify-between p-3 rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'}`}>
+            <div key={r.id} className={`flex items-center justify-between p-3 rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : theme === 'glass' ? 'border-white/20 bg-white/20' : 'border-black/5 bg-black/5'}`}>
               <div className="font-medium">{r.id}</div>
               <div className="text-sm opacity-80">
                 {t('필요: ', 'Required: ', '需求：', '必要：')}

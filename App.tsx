@@ -1234,6 +1234,7 @@ function App() {
             setStoredUserAvatar(currentUser.id, avatarUrl);
             setSelectedUserAvatar(avatarUrl);
             updateUserAvatarUrl(currentUser.id, avatarUrl);
+            setRefreshGlobal(prev => prev + 1);
             setIsAvatarPickerOpen(false);
           }}
         />

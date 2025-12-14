@@ -297,11 +297,12 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
               </button>
 
               <div
-                className="relative w-full max-w-5xl h-[85vh] flex flex-col items-center justify-center"
+                className="relative w-full max-w-6xl h-[85vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
               >
-                {/* Main Media View */}
-                <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
+                <div className="flex-1 w-full min-h-0 flex flex-col md:flex-row gap-4">
+                  {/* Main Media View */}
+                  <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
                     {mediaList[activeMediaIndex].type === 'video' ? (
                         <video 
                             src={mediaList[activeMediaIndex].url} 
@@ -335,6 +336,31 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                             </button>
                         </>
                     )}
+                  </div>
+
+                  {/* Comments panel (read-only) */}
+                  {prompt.comments.length > 0 && (
+                    <div className="w-full md:w-[360px] h-full min-h-0 rounded-lg border border-white/10 bg-black/30 backdrop-blur-sm p-3 flex flex-col">
+                      <div className="text-white/80 text-sm font-semibold mb-2">{dict.comments}</div>
+                      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        {prompt.comments.map(c => (
+                          <div key={c.id} className="flex items-start gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                            <img
+                              src={c.userAvatar || '/avators_promptgp/ava1.PNG'}
+                              alt={c.userName}
+                              className="w-7 h-7 rounded-full border border-white/10 object-cover shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="text-xs font-semibold text-white/90 truncate">{c.userName}</div>
+                              <div className="text-xs text-white/70 whitespace-pre-wrap break-words">
+                                {c.content}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Thumbnails */}
