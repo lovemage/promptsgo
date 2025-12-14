@@ -27,6 +27,11 @@ interface DbGlobalPrompt {
   updated_at: string;
 }
 
+interface DbUserProfile {
+  id: string;
+  avatar_url: string | null;
+}
+
 interface DbComment {
   id: string;
   prompt_id: string;
@@ -105,9 +110,36 @@ const getGlobalPromptsFromSupabase = async (): Promise<GlobalPrompt[]> => {
     commentsByPrompt[c.prompt_id].push(dbToComment(c));
   });
 
-  return (prompts || []).map((p: DbGlobalPrompt) =>
-    dbToGlobalPrompt(p, commentsByPrompt[p.id] || [])
-  );
+  // Fetch latest avatars for authors and commenters from users table
+  const authorIds = Array.from(new Set((prompts || []).map((p: DbGlobalPrompt) => p.author_id).filter(Boolean))) as string[];
+  const commenterIds = Array.from(new Set((comments || []).map((c: DbComment) => c.user_id).filter(Boolean))) as string[];
+  const allUserIds = Array.from(new Set([...authorIds, ...commenterIds]));
+
+  const avatarMap: Record<string, string | null> = {};
+  if (allUserIds.length > 0) {
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, avatar_url')
+      .in('id', allUserIds);
+
+    (users as DbUserProfile[] | null | undefined)?.forEach(u => {
+      avatarMap[u.id] = u.avatar_url;
+    });
+  }
+
+  return (prompts || []).map((p: DbGlobalPrompt) => {
+    const mappedComments = (commentsByPrompt[p.id] || []).map(c => ({
+      ...c,
+      userAvatar: (c.userId && c.userId !== 'anonymous' ? avatarMap[c.userId] : c.userAvatar) || c.userAvatar,
+    }));
+
+    const gp = dbToGlobalPrompt(p, mappedComments);
+    const latestAuthorAvatar = gp.authorId !== 'anonymous' ? avatarMap[gp.authorId] : null;
+    return {
+      ...gp,
+      authorAvatar: latestAuthorAvatar || gp.authorAvatar,
+    };
+  });
 };
 
 const sharePromptToSupabase = async (prompt: GlobalPrompt): Promise<void> => {

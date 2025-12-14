@@ -4,7 +4,7 @@ import { Star, MessageSquare, Copy, Check, User as UserIcon, Calendar, Image as 
 import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
-import CreatorBadge from './CreatorBadge';
+import { getEffectiveUserAvatar } from '../utils/avatarUtils';
 
 interface GlobalPromptCardProps {
   prompt: GlobalPrompt;
@@ -160,7 +160,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
         id: generateId(),
         userId: user.id,
         userName: user.displayName || 'User',
-        userAvatar: user.photoURL,
+        userAvatar: getEffectiveUserAvatar(user),
         content: newComment,
         rating: ratingToSave,
         media: mediaUrl,
@@ -390,20 +390,13 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                )}
                <div className={`flex items-center gap-2 text-xs ${textMuted} flex-wrap`}>
                  <span className="flex items-center gap-1">
-                   {prompt.authorAvatar ? (
-                     <img
-                       src={prompt.authorAvatar}
-                       alt={prompt.authorName}
-                       className="w-4 h-4 rounded-full border border-white/10 object-cover"
-                     />
-                   ) : (
-                     <UserIcon size={12} />
-                   )}
-                   {prompt.authorName}
-                 </span>
-                 {prompt.authorId !== 'anonymous' && authorPromptCount >= 5 && (
-                   <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" theme={theme} />
-                 )}
+                  <img
+                    src={prompt.authorAvatar || '/avators_promptgp/ava1.PNG'}
+                    alt={prompt.authorName}
+                    className="w-4 h-4 rounded-full border border-white/10 object-cover"
+                  />
+                  {prompt.authorName}
+                </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                      <Star size={12} className="text-yellow-500 fill-yellow-500" /> 
@@ -611,41 +604,44 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                  {prompt.comments.length === 0 ? (
                     <p className={`text-xs text-center py-2 ${textMuted}`}>{dict.noComments}</p>
                  ) : (
-                    prompt.comments.map(c => (
-                       <div key={c.id} className="text-xs">
-                          <div className="flex justify-between items-center mb-1">
-                             <span className="font-bold opacity-80">{c.userName}</span>
-                             {c.rating > 0 && (
-                                <div className="flex items-center gap-0.5">
-                                    <Star size={8} className="fill-yellow-500 text-yellow-500" />
-                                    <span>{c.rating}</span>
-                                </div>
-                             )}
-                          </div>
-                          <p className="opacity-70 leading-relaxed whitespace-pre-wrap">
-                            {c.content.split(' ').map((word, i) =>
-                               word.startsWith('@') ? <span key={i} className="text-blue-500 font-medium">{word} </span> : word + ' '
-                            )}
-                          </p>
-                          {/* Comment Media - Small Thumbnail */}
-                          {c.media && (
-                             <div className="mt-2">
-                                {c.media.includes('/video/') ? (
-                                   <video
-                                      src={c.media}
-                                      controls
-                                      className="max-w-[120px] max-h-[80px] rounded-lg border border-black/10 cursor-pointer"
-                                   />
-                                ) : (
-                                   <img
-                                      src={c.media}
-                                      alt="Comment attachment"
-                                      className="max-w-[120px] max-h-[80px] object-cover rounded-lg border border-black/10 cursor-pointer hover:opacity-80 transition-opacity"
-                                      onClick={() => setCommentMediaModal(c.media!)}
-                                   />
+                    prompt.comments.map(comment => (
+                       <div key={comment.id} className={`p-3 rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'}`}>
+                          <div className="flex items-start gap-2">
+                            <img
+                              src={comment.userAvatar || '/avators_promptgp/ava1.PNG'}
+                              alt={comment.userName}
+                              className="w-7 h-7 rounded-full border border-white/10 object-cover shrink-0"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="text-xs font-semibold">{comment.userName}</div>
+                              </div>
+                              <p className="opacity-70 leading-relaxed whitespace-pre-wrap">
+                                {comment.content.split(' ').map((word, i) =>
+                                   word.startsWith('@') ? <span key={i} className="text-blue-500 font-medium">{word} </span> : word + ' '
                                 )}
-                             </div>
-                          )}
+                              </p>
+                              {/* Comment Media - Small Thumbnail */}
+                              {comment.media && (
+                                 <div className="mt-2">
+                                    {comment.media.includes('/video/') ? (
+                                       <video
+                                          src={comment.media}
+                                          controls
+                                          className="max-w-[120px] max-h-[80px] rounded-lg border border-black/10 cursor-pointer"
+                                       />
+                                    ) : (
+                                       <img
+                                          src={comment.media}
+                                          alt="Comment attachment"
+                                          className="max-w-[120px] max-h-[80px] object-cover rounded-lg border border-black/10 cursor-pointer hover:opacity-80 transition-opacity"
+                                          onClick={() => setCommentMediaModal(comment.media!)}
+                                       />
+                                    )}
+                                 </div>
+                              )}
+                            </div>
+                          </div>
                        </div>
                     ))
                  )}

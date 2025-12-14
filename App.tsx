@@ -13,6 +13,7 @@ import { Prompt, Category, ThemeId, LanguageCode, User as UserType } from './typ
 import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
 import { loadState, saveState, loadRemoteState, saveRemoteState, generateId } from './services/storageService';
 import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
+import { updateUserAvatarUrl } from './services/authService';
 import * as globalService from './services/globalService';
 import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
@@ -27,7 +28,7 @@ import CreatorBadge from './components/CreatorBadge';
 import Footer from './components/Footer';
 import AvatarPickerModal from './components/AvatarPickerModal';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
-import { getEffectiveBadgeLevel, getEffectiveUserAvatar, getStoredUserAvatar, setStoredUserAvatar } from './utils/avatarUtils';
+import { DEFAULT_AVATAR_URL, getEffectiveBadgeLevel, getEffectiveUserAvatar, getStoredUserAvatar, setStoredUserAvatar } from './utils/avatarUtils';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -179,7 +180,14 @@ function App() {
         setCurrentUserPromptCount(count);
       });
 
-      setSelectedUserAvatar(getStoredUserAvatar(currentUser.id));
+      const stored = getStoredUserAvatar(currentUser.id);
+      if (!stored) {
+        setStoredUserAvatar(currentUser.id, DEFAULT_AVATAR_URL);
+        setSelectedUserAvatar(DEFAULT_AVATAR_URL);
+        updateUserAvatarUrl(currentUser.id, DEFAULT_AVATAR_URL);
+      } else {
+        setSelectedUserAvatar(stored);
+      }
     } else {
       setCurrentUserPromptCount(0);
       setSelectedUserAvatar(null);
@@ -411,6 +419,11 @@ function App() {
     try {
       await globalService.deletePrompt(promptId);
       setRefreshGlobal(prev => prev + 1);
+      if (currentUser?.id) {
+        globalService.getAuthorPromptCount(currentUser.id).then(count => {
+          setCurrentUserPromptCount(count);
+        });
+      }
       alert('✅ 已刪除該卡片');
     } catch (error) {
       console.error('Error deleting prompt:', error);
@@ -1220,6 +1233,7 @@ function App() {
           onSelectAvatar={(avatarUrl) => {
             setStoredUserAvatar(currentUser.id, avatarUrl);
             setSelectedUserAvatar(avatarUrl);
+            updateUserAvatarUrl(currentUser.id, avatarUrl);
             setIsAvatarPickerOpen(false);
           }}
         />

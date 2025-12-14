@@ -1,6 +1,8 @@
 import { calculateBadgeInfo } from './badgeUtils';
 import { User } from '../types';
 
+export const DEFAULT_AVATAR_URL = '/avators_promptgp/ava1.PNG';
+
 const userAvatarKey = (userId: string) => `promptsgo_user_avatar_${userId}`;
 
 export const getStoredUserAvatar = (userId: string): string | null => {
@@ -21,7 +23,7 @@ export const setStoredUserAvatar = (userId: string, avatarUrl: string) => {
 
 export const getEffectiveUserAvatar = (user: User | null): string | null => {
   if (!user?.id) return null;
-  return getStoredUserAvatar(user.id) || user.photoURL || null;
+  return getStoredUserAvatar(user.id) || DEFAULT_AVATAR_URL;
 };
 
 export const getEffectiveBadgeLevel = (promptCount: number, language: string) => {

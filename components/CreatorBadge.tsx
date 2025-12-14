@@ -40,20 +40,22 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
         />
       </div>
 
-      <div className="flex items-center gap-1">
-      {/* Title */}
-      {showTitle && (
-         <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border whitespace-nowrap ${
-            golds > 0 ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
-            stars > 0 ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
-            'bg-slate-500/10 text-slate-600 border-slate-500/20'
-         }`}>
-           {title}
-         </span>
-      )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
 
-      {/* Badges - Optimized Layout */}
-      <div className="flex items-center gap-0.5">
+          {/* Title */}
+          {showTitle && (
+             <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border whitespace-nowrap ${
+                golds > 0 ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
+                stars > 0 ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
+                'bg-slate-500/10 text-slate-600 border-slate-500/20'
+             }`}>
+               {title}
+             </span>
+          )}
+
+          {/* Badges - Optimized Layout */}
+          <div className="flex items-center gap-0.5">
          {/* Gold Coins */}
          {Array.from({ length: golds }).map((_, i) => (
             <div key={`gold-${i}`} className="relative w-5 h-5 flex items-center justify-center">
@@ -92,8 +94,13 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
                />
             </div>
          ))}
+          </div>
+        </div>
+
+        <div className="text-[10px] font-bold opacity-70 tabular-nums">
+          {Math.round(progress)}%
+        </div>
       </div>
-    </div>
     </div>
   );
 };

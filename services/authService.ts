@@ -103,6 +103,20 @@ export const signOut = async (): Promise<void> => {
   notifyListeners();
 };
 
+export const updateUserAvatarUrl = async (userId: string, avatarUrl: string): Promise<void> => {
+  if (!supabase) return;
+
+  const { error } = await supabase.from('users').upsert({
+    id: userId,
+    avatar_url: avatarUrl,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.warn('Failed to update user avatar:', error);
+  }
+};
+
 export const onAuthStateChanged = (callback: AuthListener) => {
   listeners.push(callback);
   // Send current state immediately
