@@ -107,6 +107,9 @@ export default async function handler(req: any, res: any) {
 
   const lang = typeof language === 'string' && language.trim() ? language.trim() : 'en';
 
+  // Avoid sending extremely long prompts that can cause truncation or empty responses.
+  const clippedPrompt = safePrompt.length > 4000 ? safePrompt.slice(0, 4000) : safePrompt;
+
   let instruction = '';
   if (safeTask === 'refine') {
     instruction = `You are an expert prompt engineer for generative AI (Stable Diffusion, Midjourney, LLMs).
@@ -115,15 +118,17 @@ Only return the improved prompt text. Do not add explanations.
 Language for output: ${lang}.
 
 Original prompt:
-${safePrompt}`;
+${clippedPrompt}`;
   } else {
-    instruction = `You are helping a user publish a prompt to a community feed.
-Based on the user's prompt below, generate a concise Title and a short Description.
-Return ONLY valid JSON with exactly these keys: {"title": string, "description": string}.
-Language for output: ${lang}.
+    instruction = `Return ONLY valid JSON: {"title":"...","description":"..."}.
+Rules:
+- Language: ${lang}
+- title: <= 60 chars
+- description: <= 120 chars
+- No markdown, no code fences, no extra keys.
 
-User prompt:
-${safePrompt}`;
+Prompt:
+${clippedPrompt}`;
   }
 
   try {
@@ -135,7 +140,7 @@ ${safePrompt}`;
         contents: [{ role: 'user', parts: [{ text: instruction }] }],
         generationConfig: {
           temperature: safeTask === 'refine' ? 0.6 : 0.4,
-          maxOutputTokens: safeTask === 'refine' ? 1024 : 256,
+          maxOutputTokens: safeTask === 'refine' ? 1024 : 512,
           ...(safeTask === 'share_meta' ? { responseMimeType: 'application/json' } : {}),
         },
       }),

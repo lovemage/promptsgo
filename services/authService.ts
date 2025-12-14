@@ -54,24 +54,6 @@ const ensureUserProfile = async (user: User) => {
     return;
   }
 
-  // Initialize email only if DB email is currently NULL.
-  // If it conflicts with another row's email unique constraint, ignore.
-  if (user.email) {
-    const { error: emailInitError } = await supabase
-      .from('users')
-      .update({ email: user.email, updated_at: now })
-      .eq('id', user.id)
-      .is('email', null);
-
-    if (emailInitError && (emailInitError as any).code !== '23505') {
-      console.warn('Failed to init email:', {
-        code: (emailInitError as any).code,
-        message: emailInitError.message,
-        details: (emailInitError as any).details,
-      });
-    }
-  }
-
   // 2) Initialize avatar_url from provider photoURL ONLY if DB avatar_url is null.
   // This prevents overwriting a user-selected custom avatar.
   if (user.photoURL) {
