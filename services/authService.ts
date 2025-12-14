@@ -24,7 +24,6 @@ const ensureUserProfile = async (user: User) => {
     id: user.id,
     email: user.email,
     full_name: user.displayName,
-    avatar_url: user.photoURL,
     updated_at: new Date().toISOString(),
   };
 
