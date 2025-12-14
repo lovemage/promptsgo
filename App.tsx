@@ -19,6 +19,7 @@ import CategoryManager from './components/CategoryManager';
 import GlobalView from './components/GlobalView';
 import ShareModal from './components/ShareModal';
 import LegalView from './components/LegalView';
+import UpgradeGuideView from './components/UpgradeGuideView';
 import WebViewWarning from './components/WebViewWarning';
 import OnboardingTour, { TourStep } from './components/OnboardingTour';
 import UnlockModal from './components/UnlockModal';
@@ -66,7 +67,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Navigation State
-  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection' | 'terms' | 'privacy'>('global');
+  const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection' | 'terms' | 'privacy' | 'upgrade'>('global');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<LanguageCode>('en');
@@ -580,6 +581,7 @@ function App() {
     { code: 'en', label: 'English' },
     { code: 'zh-TW', label: '繁體中文' },
     { code: 'ja', label: '日本語' },
+    { code: 'ko', label: '한국어' },
   ];
 
   const themes: {id: ThemeId; label: string}[] = [
@@ -787,7 +789,7 @@ function App() {
                         onClick={() => setIsAvatarPickerOpen(true)}
                         className="text-xs opacity-60 hover:underline"
                       >
-                        Change avatar
+                        {dict.changeAvatar}
                       </button>
                       <button onClick={handleLogout} className="text-xs opacity-60 hover:underline flex items-center gap-1">
                         <LogOut size={10} /> {dict.logout}
@@ -937,6 +939,13 @@ function App() {
               onBack={() => setCurrentView('global')}
               dict={dict}
            />
+        ) : currentView === 'upgrade' ? (
+          <UpgradeGuideView
+            language={language}
+            theme={theme}
+            dict={dict}
+            onBack={() => setCurrentView('global')}
+          />
         ) : activeView === 'global' || activeView === 'collection' ? (
            <GlobalView
               key={refreshGlobal}
@@ -1173,6 +1182,10 @@ function App() {
       <Footer
         theme={theme}
         dict={dict}
+        onOpenUpgradeGuide={() => {
+          setCurrentView('upgrade');
+          if (window.innerWidth < 768) setIsSidebarOpen(false);
+        }}
         onOpenTerms={() => {
           setCurrentView('terms');
           if (window.innerWidth < 768) setIsSidebarOpen(false);
@@ -1200,6 +1213,7 @@ function App() {
           isOpen={isAvatarPickerOpen}
           onClose={() => setIsAvatarPickerOpen(false)}
           theme={theme}
+          dict={dict}
           level={currentUserLevel}
           selectedAvatarUrl={selectedUserAvatar}
           allowUpload={allowCustomAvatarUpload}

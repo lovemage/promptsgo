@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { X, Lock, Upload } from 'lucide-react';
-import { ThemeId } from '../types';
+import { Dictionary, ThemeId } from '../types';
 import { buildDefaultAvatarList, isDefaultAvatarUnlocked } from '../utils/avatarUtils';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
 
@@ -8,6 +8,7 @@ interface AvatarPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   theme: ThemeId;
+  dict: Dictionary;
   level: number;
   selectedAvatarUrl: string | null;
   onSelectAvatar: (avatarUrl: string) => void;
@@ -18,6 +19,7 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
   isOpen,
   onClose,
   theme,
+  dict,
   level,
   selectedAvatarUrl,
   onSelectAvatar,
@@ -38,12 +40,12 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
     if (!file) return;
 
     if (!allowUpload) {
-      alert('Level not unlocked for custom upload yet.');
+      alert(dict.avatarUploadNotUnlocked);
       return;
     }
 
     if (!isCloudinaryConfigured()) {
-      alert('Cloudinary is not configured.');
+      alert(dict.avatarUploadNotConfigured);
       return;
     }
 
@@ -54,7 +56,7 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
         onSelectAvatar(res.secure_url);
       }
     } catch {
-      alert('Upload failed.');
+      alert(dict.avatarUploadFailed);
     } finally {
       setIsUploading(false);
     }
@@ -67,8 +69,8 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
       <div className={`relative w-full max-w-2xl rounded-2xl border shadow-2xl ${borderClass} ${bgClass}`}>
         <div className={`flex items-center justify-between px-5 py-4 border-b ${borderClass}`}>
           <div>
-            <div className="text-lg font-bold">Choose Avatar</div>
-            <div className={`text-xs ${mutedText}`}>Level {level}</div>
+            <div className="text-lg font-bold">{dict.chooseAvatarTitle}</div>
+            <div className={`text-xs ${mutedText}`}>{dict.levelLabel} {level}</div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
             <X size={18} />
@@ -91,7 +93,7 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                     onSelectAvatar(a.url);
                   }}
                   className={`relative rounded-xl overflow-hidden border transition-all ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : borderClass} ${unlocked ? 'hover:scale-[1.02]' : 'opacity-70 cursor-not-allowed'}`}
-                  title={unlocked ? 'Select' : 'Locked'}
+                  title={unlocked ? dict.select : dict.locked}
                 >
                   <img src={a.url} alt={a.id} className="w-full aspect-square object-cover" />
                   {!unlocked && (
@@ -108,12 +110,12 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
 
           <div className="mt-5 flex items-center justify-between gap-3">
             <div className={`text-xs ${mutedText}`}>
-              Star Creator and above can upload a custom avatar.
+              {dict.avatarUploadHint}
             </div>
 
             <label className={`inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border ${borderClass} ${allowUpload ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/10' : 'opacity-50 cursor-not-allowed'}`}>
               <Upload size={16} />
-              {isUploading ? 'Uploading...' : 'Upload'}
+              {isUploading ? dict.uploading : dict.upload}
               <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={!allowUpload || isUploading} />
             </label>
           </div>

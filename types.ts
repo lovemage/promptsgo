@@ -1,5 +1,5 @@
 
-export type LanguageCode = 'en' | 'zh-TW' | 'ja';
+export type LanguageCode = 'en' | 'zh-TW' | 'ja' | 'ko';
 export type ThemeId = 'light' | 'dark' | 'binder' | 'journal' | 'glass' | 'royal' | 'greenble';
 
 export interface User {
@@ -141,6 +141,21 @@ export interface Dictionary {
     selectAll: string;
     deselectAll: string;
     deleteSelected: string;
+
+  changeAvatar: string;
+  chooseAvatarTitle: string;
+  levelLabel: string;
+  select: string;
+  locked: string;
+  upload: string;
+  uploading: string;
+  avatarUploadHint: string;
+  avatarUploadNotUnlocked: string;
+  avatarUploadNotConfigured: string;
+  avatarUploadFailed: string;
+
+  upgradeGuide: string;
+  upgradeGuideTitle: string;
 }
 
 export interface AppState {

@@ -23,6 +23,11 @@ export const TITLES: Record<string, string[]> = {
     '新米クリエイター', '見習い', '冒険者', '職人', 'スタークリエイター',
     '新星', 'プロンプトエンジニア', 'スペシャリスト', '達人', 'ゴールドマスター',
     'グランドマスター', '賢者', 'レジェンド', '半神', 'プロンプトの神'
+  ],
+  'ko': [
+    '초보 창작자', '수습생', '탐험가', '장인', '스타 창작자',
+    '떠오르는 스타', '프롬프트 엔지니어', '스페셜리스트', '전문가', '골드 마스터',
+    '그랜드마스터', '현자', '전설', '반신', '프롬프트의 신'
   ]
 };
 
@@ -120,7 +125,7 @@ export const calculateBadgeInfo = (count: number, language: string = 'en'): Badg
   }
 
   // Get localized titles
-  const validLang = (language === 'zh-TW' || language === 'ja' || language === 'en') ? language : 'en';
+  const validLang = (language === 'zh-TW' || language === 'ja' || language === 'en' || language === 'ko') ? language : 'en';
   const titles = TITLES[validLang];
   
   // Map level to title index (0-14)

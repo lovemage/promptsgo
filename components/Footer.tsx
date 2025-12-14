@@ -6,9 +6,10 @@ interface FooterProps {
   dict: Dictionary;
   onOpenTerms: () => void;
   onOpenPrivacy: () => void;
+  onOpenUpgradeGuide: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ theme, dict, onOpenTerms, onOpenPrivacy }) => {
+const Footer: React.FC<FooterProps> = ({ theme, dict, onOpenTerms, onOpenPrivacy, onOpenUpgradeGuide }) => {
   const borderClass = theme === 'dark' ? 'border-slate-800' : theme === 'light' ? 'border-slate-200' : 'border-white/10';
   const textClass = theme === 'dark' ? 'text-slate-400' : 'text-slate-500';
   const copyrightClass = theme === 'dark' ? 'text-slate-500' : 'text-slate-400';
@@ -17,6 +18,12 @@ const Footer: React.FC<FooterProps> = ({ theme, dict, onOpenTerms, onOpenPrivacy
     <footer className={`px-6 py-4 border-t ${borderClass}`}>
       <div className="max-w-6xl mx-auto flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button
+            onClick={onOpenUpgradeGuide}
+            className={`text-xs opacity-70 hover:opacity-100 hover:underline transition-all ${textClass}`}
+          >
+            {dict.upgradeGuide}
+          </button>
           <button
             onClick={onOpenTerms}
             className={`text-xs opacity-70 hover:opacity-100 hover:underline transition-all ${textClass}`}
