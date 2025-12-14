@@ -5,6 +5,7 @@ import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
+import { getEffectiveUserAvatar } from '../utils/avatarUtils';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -240,6 +241,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         alert('Upload failed. Saving with previews/placeholders.');
     }
 
+    const effectiveAvatar = getEffectiveUserAvatar(user);
     const promptData = {
         title,
         description,
@@ -249,7 +251,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
         note,
         authorId: isAnonymous ? 'anonymous' : (user?.id || 'guest'),
         authorName: isAnonymous ? 'Anonymous' : (user?.displayName || 'Guest'),
-        authorAvatar: isAnonymous ? undefined : user?.photoURL,
+        authorAvatar: isAnonymous ? undefined : effectiveAvatar,
         tags: tagList,
         modelTags: modelTags,
         image: imageUrl,

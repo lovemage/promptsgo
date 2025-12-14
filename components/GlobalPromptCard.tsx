@@ -389,12 +389,21 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                  </h3>
                )}
                <div className={`flex items-center gap-2 text-xs ${textMuted} flex-wrap`}>
-                  <span className="flex items-center gap-1">
-                    <UserIcon size={12} /> {prompt.authorName}
-                  </span>
-                  {prompt.authorId !== 'anonymous' && authorPromptCount >= 5 && (
-                    <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" theme={theme} />
-                  )}
+                 <span className="flex items-center gap-1">
+                   {prompt.authorAvatar ? (
+                     <img
+                       src={prompt.authorAvatar}
+                       alt={prompt.authorName}
+                       className="w-4 h-4 rounded-full border border-white/10 object-cover"
+                     />
+                   ) : (
+                     <UserIcon size={12} />
+                   )}
+                   {prompt.authorName}
+                 </span>
+                 {prompt.authorId !== 'anonymous' && authorPromptCount >= 5 && (
+                   <CreatorBadge count={authorPromptCount} language={language} showTitle={false} className="ml-0.5" theme={theme} />
+                 )}
                   <span>•</span>
                   <span className="flex items-center gap-1">
                      <Star size={12} className="text-yellow-500 fill-yellow-500" /> 

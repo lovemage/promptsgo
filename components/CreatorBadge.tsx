@@ -13,11 +13,11 @@ interface CreatorBadgeProps {
 const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className = '', showTitle = true, theme = 'light' }) => {
   const { silvers, stars, golds, title, level } = calculateBadgeInfo(count, language);
 
-  if (level === 0) return null;
-
   // Calculate progress (0-100%)
-  // 5 prompts resets progress (0 -> 20 -> 40 -> 60 -> 80 -> 0)
-  const progress = ((count % 5) / 5) * 100;
+  // New users should still see a small progress bar (min 5%).
+  // For exact boundaries (e.g. 5, 10, 15...), show 100% instead of 0%.
+  const rawProgress = ((count % 5) / 5) * 100;
+  const progress = count === 0 ? 5 : rawProgress === 0 ? 100 : Math.max(5, rawProgress);
 
   const getProgressColor = () => {
     switch (theme) {
@@ -33,7 +33,7 @@ const CreatorBadge: React.FC<CreatorBadgeProps> = ({ count, language, className 
   return (
     <div className={`flex flex-col justify-center ${className}`}>
       {/* Progress Bar */}
-      <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-0.5 opacity-80">
+      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-0.5 opacity-80">
         <div 
           className={`h-full transition-all duration-300 ${getProgressColor()}`} 
           style={{ width: `${progress}%` }}

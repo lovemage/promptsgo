@@ -23,7 +23,10 @@ import WebViewWarning from './components/WebViewWarning';
 import OnboardingTour, { TourStep } from './components/OnboardingTour';
 import UnlockModal from './components/UnlockModal';
 import CreatorBadge from './components/CreatorBadge';
+import Footer from './components/Footer';
+import AvatarPickerModal from './components/AvatarPickerModal';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
+import { getEffectiveBadgeLevel, getEffectiveUserAvatar, getStoredUserAvatar, setStoredUserAvatar } from './utils/avatarUtils';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -96,6 +99,9 @@ function App() {
 
   // Creator Badge - current user's prompt count
   const [currentUserPromptCount, setCurrentUserPromptCount] = useState(0);
+
+  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+  const [selectedUserAvatar, setSelectedUserAvatar] = useState<string | null>(null);
 
   // Deep Linking & Auth Listener
   useEffect(() => {
@@ -171,8 +177,11 @@ function App() {
       globalService.getAuthorPromptCount(currentUser.id).then(count => {
         setCurrentUserPromptCount(count);
       });
+
+      setSelectedUserAvatar(getStoredUserAvatar(currentUser.id));
     } else {
       setCurrentUserPromptCount(0);
+      setSelectedUserAvatar(null);
     }
   }, [currentUser, isAuthLoading]);
 
@@ -585,6 +594,9 @@ function App() {
 
   // Force global view if not logged in
   const activeView = currentUser ? currentView : 'global';
+  const currentUserLevel = getEffectiveBadgeLevel(currentUserPromptCount, language);
+  const effectiveUserAvatar = getEffectiveUserAvatar(currentUser);
+  const allowCustomAvatarUpload = currentUserLevel > 5;
 
   return (
     <div 
@@ -762,8 +774,8 @@ function App() {
               {currentUser ? (
                 <div className="flex flex-col gap-2">
                   <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${styles.hoverItem}`}>
-                    {currentUser.photoURL ? (
-                      <img src={currentUser.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
+                    {effectiveUserAvatar ? (
+                      <img src={effectiveUserAvatar} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
                         {currentUser.displayName?.charAt(0) || 'U'}
@@ -771,6 +783,12 @@ function App() {
                     )}
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-medium truncate">{currentUser.displayName}</p>
+                      <button
+                        onClick={() => setIsAvatarPickerOpen(true)}
+                        className="text-xs opacity-60 hover:underline"
+                      >
+                        Change avatar
+                      </button>
                       <button onClick={handleLogout} className="text-xs opacity-60 hover:underline flex items-center gap-1">
                         <LogOut size={10} /> {dict.logout}
                       </button>
@@ -899,36 +917,12 @@ function App() {
             </div>
           </div>
 
-          {/* Legal Links Footer */}
-          <div className={`mt-auto px-4 py-4 border-t ${theme === 'dark' ? 'border-slate-800' : theme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
-            <div className="flex flex-col gap-2">
-              <button 
-                onClick={() => {
-                   setCurrentView('terms');
-                   if (window.innerWidth < 768) setIsSidebarOpen(false);
-                }}
-                className={`text-xs text-left opacity-60 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
-              >
-                {dict.termsOfService}
-              </button>
-              <button
-                onClick={() => {
-                   setCurrentView('privacy');
-                   if (window.innerWidth < 768) setIsSidebarOpen(false);
-                }}
-                className={`text-xs text-left opacity-60 hover:opacity-100 hover:underline transition-all ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
-              >
-                {dict.privacyPolicy}
-              </button>
-            </div>
-             <div className={`text-[10px] mt-2 opacity-40 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
-                © 2025 PromptsGo
-             </div>
-          </div>
+          
         </nav>
       </aside>
 
       {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
       <main 
         className="flex-1 flex flex-col overflow-hidden relative"
         style={activeView === 'local' ? styles.mainAreaStyle : undefined}
@@ -1176,6 +1170,19 @@ function App() {
            </>
         )}
       </main>
+      <Footer
+        theme={theme}
+        dict={dict}
+        onOpenTerms={() => {
+          setCurrentView('terms');
+          if (window.innerWidth < 768) setIsSidebarOpen(false);
+        }}
+        onOpenPrivacy={() => {
+          setCurrentView('privacy');
+          if (window.innerWidth < 768) setIsSidebarOpen(false);
+        }}
+      />
+      </div>
 
       {/* Modals */}
       <PromptModal
@@ -1187,6 +1194,22 @@ function App() {
         dict={dict}
         theme={theme}
       />
+
+      {currentUser && (
+        <AvatarPickerModal
+          isOpen={isAvatarPickerOpen}
+          onClose={() => setIsAvatarPickerOpen(false)}
+          theme={theme}
+          level={currentUserLevel}
+          selectedAvatarUrl={selectedUserAvatar}
+          allowUpload={allowCustomAvatarUpload}
+          onSelectAvatar={(avatarUrl) => {
+            setStoredUserAvatar(currentUser.id, avatarUrl);
+            setSelectedUserAvatar(avatarUrl);
+            setIsAvatarPickerOpen(false);
+          }}
+        />
+      )}
 
       {sharingPrompt && (
         <ShareModal

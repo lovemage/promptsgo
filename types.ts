@@ -95,6 +95,7 @@ export interface Dictionary {
   themeJournal: string;
   themeGlass: string;
   themeRoyal: string;
+  themeGreenble: string;
   categoryName: string;
   categoryColor: string;
   categoryIcon: string;
