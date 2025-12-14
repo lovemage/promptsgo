@@ -1,27 +1,34 @@
-import { GoogleGenAI } from "@google/genai";
-
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
-
 export const refinePromptWithAI = async (originalPrompt: string): Promise<string> => {
-  if (!apiKey) {
-    console.warn("API Key is missing for Gemini");
-    return originalPrompt + " (AI unavailable: No API Key)";
-  }
-
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `You are an expert prompt engineer for generative AI (Stable Diffusion, Midjourney, LLMs). 
-      Refine and improve the following prompt to be more descriptive, detailed, and effective. 
-      Only return the improved prompt text, no explanations.
-      
-      Original prompt: "${originalPrompt}"`,
+    const resp = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task: 'refine', prompt: originalPrompt }),
     });
-    
-    return response.text?.trim() || originalPrompt;
+
+    if (!resp.ok) return originalPrompt;
+    const data = await resp.json();
+    return (typeof data?.refined === 'string' && data.refined.trim()) ? data.refined.trim() : originalPrompt;
   } catch (error) {
     console.error("Gemini refinement failed:", error);
     return originalPrompt;
+  }
+};
+
+export const generateShareMetaWithAI = async (promptText: string, language?: string): Promise<{ title: string; description: string } | null> => {
+  try {
+    const resp = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task: 'share_meta', prompt: promptText, language }),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const title = typeof data?.title === 'string' ? data.title : '';
+    const description = typeof data?.description === 'string' ? data.description : '';
+    return { title, description };
+  } catch (error) {
+    console.error('Gemini share meta generation failed:', error);
+    return null;
   }
 };

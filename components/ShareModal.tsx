@@ -6,6 +6,7 @@ import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globa
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
 import { getEffectiveUserAvatar } from '../utils/avatarUtils';
+import { generateShareMetaWithAI } from '../services/geminiService';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -15,11 +16,12 @@ interface ShareModalProps {
   user: User | null;
   dict: Dictionary;
   theme: ThemeId;
+  language: string;
   isEditingGlobalPrompt?: boolean;
   globalPromptId?: string;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme, isEditingGlobalPrompt = false, globalPromptId }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, prompt, user, dict, theme, language, isEditingGlobalPrompt = false, globalPromptId }) => {
   const [title, setTitle] = useState(prompt.title);
   const [description, setDescription] = useState(prompt.description || '');
   const [sourceUrl, setSourceUrl] = useState('');
@@ -188,6 +190,19 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     const tagList = tags;
     setIsUploading(true);
 
+    // Auto-generate title/description if user only provided prompt text.
+    let effectiveTitle = title;
+    let effectiveDescription = description;
+    if (!isEditingGlobalPrompt && positive.trim() && (!title.trim() || !description.trim())) {
+      const meta = await generateShareMetaWithAI(positive, language);
+      if (meta) {
+        if (!effectiveTitle.trim() && meta.title.trim()) effectiveTitle = meta.title.trim();
+        if (!effectiveDescription.trim() && meta.description.trim()) effectiveDescription = meta.description.trim();
+        setTitle(effectiveTitle);
+        setDescription(effectiveDescription);
+      }
+    }
+
     let imageUrl = imagePreview || undefined;
     let videoUrl = videoPreview || undefined;
     let componentUrls = [...componentPreviews];
@@ -243,8 +258,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
     const effectiveAvatar = getEffectiveUserAvatar(user);
     const promptData = {
-        title,
-        description,
+        title: effectiveTitle,
+        description: effectiveDescription,
         sourceUrl,
         positive,
         negative,

@@ -1306,6 +1306,7 @@ function App() {
            user={currentUser}
            dict={dict}
            theme={theme}
+           language={language}
            isEditingGlobalPrompt={isEditingGlobalPrompt}
            globalPromptId={editingGlobalPromptId || undefined}
         />
