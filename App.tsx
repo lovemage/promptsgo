@@ -27,8 +27,10 @@ import UnlockModal from './components/UnlockModal';
 import CreatorBadge from './components/CreatorBadge';
 import Footer from './components/Footer';
 import AvatarPickerModal from './components/AvatarPickerModal';
+import NicknameModal from './components/NicknameModal';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 import { DEFAULT_AVATAR_URL, getEffectiveBadgeLevel, getEffectiveUserAvatar, getStoredUserAvatar, setStoredUserAvatar } from './utils/avatarUtils';
+import * as nicknameService from './services/nicknameService';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -104,6 +106,8 @@ function App() {
 
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
   const [selectedUserAvatar, setSelectedUserAvatar] = useState<string | null>(null);
+
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   // Deep Linking & Auth Listener
   useEffect(() => {
@@ -436,8 +440,25 @@ function App() {
      setIsSidebarOpen(false); // Close sidebar after tour
      if (currentUser) {
         localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
+
+        // Initialize nickname rolls and prompt nickname selection the first time.
+        (async () => {
+          const p = await nicknameService.ensureNicknameInitialized(currentUser.id, 3);
+          if (p && !p.nickname) {
+            setIsNicknameModalOpen(true);
+          }
+        })();
      }
   }, [currentUser]);
+
+  // Award nickname tokens on level-up (stackable) and persist to DB.
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const lvl = getEffectiveBadgeLevel(currentUserPromptCount, language);
+    nicknameService.awardNicknameTokensForLevel(currentUser.id, lvl).catch(() => {
+      // ignore
+    });
+  }, [currentUser?.id, currentUserPromptCount, language]);
 
   const handleTourStepChange = useCallback((index: number) => {
      // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
@@ -1237,6 +1258,17 @@ function App() {
             setRefreshGlobal(prev => prev + 1);
             setIsAvatarPickerOpen(false);
           }}
+        />
+      )}
+
+      {currentUser && (
+        <NicknameModal
+          isOpen={isNicknameModalOpen}
+          onClose={() => setIsNicknameModalOpen(false)}
+          userId={currentUser.id}
+          theme={theme}
+          language={language}
+          currentLevel={currentUserLevel}
         />
       )}
 

@@ -419,7 +419,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                   <img
                     src={prompt.authorAvatar || '/avators_promptgp/ava1.PNG'}
                     alt={prompt.authorName}
-                    className="w-4 h-4 rounded-full border border-white/10 object-cover"
+                    className="w-8 h-8 rounded-full border border-white/10 object-cover"
                   />
                   {prompt.authorName}
                 </span>
