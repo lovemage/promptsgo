@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Globe, Upload, Image as ImageIcon, Loader2, Plus, Video as VideoIcon } from 'lucide-react';
+import { X, Globe, Upload, Image as ImageIcon, Loader2, Plus, Video as VideoIcon, Sparkles } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
@@ -43,6 +43,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingMeta, setIsGeneratingMeta] = useState(false);
 
   // Load available models
   useEffect(() => {
@@ -186,22 +187,26 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     setTags(tags.filter(t => t !== tagToRemove));
   };
 
+  const handleGenerateMeta = async () => {
+    if (!positive.trim()) return;
+    setIsGeneratingMeta(true);
+    try {
+      const meta = await generateShareMetaWithAI(positive, language);
+      if (meta) {
+        if (meta.title.trim()) setTitle(meta.title.trim());
+        if (meta.description.trim()) setDescription(meta.description.trim());
+      }
+    } finally {
+      setIsGeneratingMeta(false);
+    }
+  };
+
   const handlePublish = async () => {
     const tagList = tags;
     setIsUploading(true);
 
-    // Auto-generate title/description if user only provided prompt text.
-    let effectiveTitle = title;
-    let effectiveDescription = description;
-    if (!isEditingGlobalPrompt && positive.trim() && (!title.trim() || !description.trim())) {
-      const meta = await generateShareMetaWithAI(positive, language);
-      if (meta) {
-        if (!effectiveTitle.trim() && meta.title.trim()) effectiveTitle = meta.title.trim();
-        if (!effectiveDescription.trim() && meta.description.trim()) effectiveDescription = meta.description.trim();
-        setTitle(effectiveTitle);
-        setDescription(effectiveDescription);
-      }
-    }
+    const effectiveTitle = title;
+    const effectiveDescription = description;
 
     let imageUrl = imagePreview || undefined;
     let videoUrl = videoPreview || undefined;
@@ -347,7 +352,24 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.title}</label>
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <label className="block text-sm font-medium opacity-70">{dict.title}</label>
+                  {!isEditingGlobalPrompt && (
+                    <button
+                      onClick={handleGenerateMeta}
+                      disabled={isUploading || isGeneratingMeta || !positive.trim()}
+                      className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 disabled:opacity-50"
+                    >
+                      {isGeneratingMeta ? (
+                        <span className="animate-pulse">{dict.refining}</span>
+                      ) : (
+                        <>
+                          <Sparkles size={12} /> AI 生成標題/描述
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
                 <input 
                   value={title} onChange={e => setTitle(e.target.value)}
                   className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
