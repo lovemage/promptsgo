@@ -22,8 +22,46 @@ const stripCodeFences = (s: string) => {
 };
 
 const extractFirstJsonObject = (s: string): string | null => {
-  const m = s.match(/\{[\s\S]*\}/);
-  return m ? m[0] : null;
+  // Balanced-brace scan to avoid grabbing an incomplete JSON object.
+  const start = s.indexOf('{');
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaping = false;
+
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+
+    if (inString) {
+      if (escaping) {
+        escaping = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escaping = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (ch === '{') depth++;
+    if (ch === '}') depth--;
+
+    if (depth === 0) {
+      return s.slice(start, i + 1);
+    }
+  }
+
+  return null;
 };
 
 export default async function handler(req: any, res: any) {
@@ -81,6 +119,7 @@ ${safePrompt}`;
         generationConfig: {
           temperature: safeTask === 'refine' ? 0.6 : 0.4,
           maxOutputTokens: safeTask === 'refine' ? 1024 : 256,
+          ...(safeTask === 'share_meta' ? { responseMimeType: 'application/json' } : {}),
         },
       }),
     });
