@@ -19,14 +19,35 @@ const notifyListeners = () => {
 
 const ensureUserProfile = async (user: User) => {
   if (!supabase) return;
-  
-  const profile = {
+
+  // Do not overwrite an existing custom avatar_url stored in DB.
+  // Only initialize avatar_url from provider photoURL if DB has no avatar_url yet.
+  let shouldInitAvatarUrl = false;
+  try {
+    const { data: existing, error: selectError } = await supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!selectError) {
+      shouldInitAvatarUrl = !existing?.avatar_url;
+    }
+  } catch {
+    // If select fails (e.g. RLS/column mismatch), fall back to upsert without avatar_url.
+    shouldInitAvatarUrl = false;
+  }
+
+  const profile: Record<string, any> = {
     id: user.id,
     email: user.email,
     full_name: user.displayName,
-    avatar_url: user.photoURL,
     updated_at: new Date().toISOString(),
   };
+
+  if (shouldInitAvatarUrl && user.photoURL) {
+    profile.avatar_url = user.photoURL;
+  }
 
   // Upsert into 'users' table to satisfy foreign key constraints
   const { error } = await supabase.from('users').upsert(profile);

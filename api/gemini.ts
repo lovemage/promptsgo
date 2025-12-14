@@ -13,6 +13,19 @@ const extractText = (data: any): string | null => {
   return typeof t === 'string' ? t : null;
 };
 
+const stripCodeFences = (s: string) => {
+  // Remove ```json ... ``` or ``` ... ``` wrappers
+  return s
+    .replace(/^```[a-zA-Z]*\s*/m, '')
+    .replace(/\s*```$/m, '')
+    .trim();
+};
+
+const extractFirstJsonObject = (s: string): string | null => {
+  const m = s.match(/\{[\s\S]*\}/);
+  return m ? m[0] : null;
+};
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -88,9 +101,10 @@ ${safePrompt}`;
     }
 
     // share_meta
-    const trimmed = text.trim();
+    const trimmed = stripCodeFences(text.trim());
     try {
-      const parsed = JSON.parse(trimmed);
+      const jsonCandidate = extractFirstJsonObject(trimmed) || trimmed;
+      const parsed = JSON.parse(jsonCandidate);
       const title = typeof parsed?.title === 'string' ? parsed.title.trim() : '';
       const description = typeof parsed?.description === 'string' ? parsed.description.trim() : '';
       return json(res, 200, { title, description });
