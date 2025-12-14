@@ -30,6 +30,8 @@ interface DbGlobalPrompt {
 interface DbUserProfile {
   id: string;
   avatar_url: string | null;
+  nickname: string | null;
+  nickname_icon: string | null;
 }
 
 interface DbComment {
@@ -110,20 +112,22 @@ const getGlobalPromptsFromSupabase = async (): Promise<GlobalPrompt[]> => {
     commentsByPrompt[c.prompt_id].push(dbToComment(c));
   });
 
-  // Fetch latest avatars for authors and commenters from users table
+  // Fetch latest avatars and nicknames for authors and commenters from users table
   const authorIds = Array.from(new Set((prompts || []).map((p: DbGlobalPrompt) => p.author_id).filter(Boolean))) as string[];
   const commenterIds = Array.from(new Set((comments || []).map((c: DbComment) => c.user_id).filter(Boolean))) as string[];
   const allUserIds = Array.from(new Set([...authorIds, ...commenterIds]));
 
   const avatarMap: Record<string, string | null> = {};
+  const nicknameMap: Record<string, { nickname: string | null; nickname_icon: string | null } | undefined> = {};
   if (allUserIds.length > 0) {
     const { data: users } = await supabase
       .from('users')
-      .select('id, avatar_url')
+      .select('id, avatar_url, nickname, nickname_icon')
       .in('id', allUserIds);
 
     (users as DbUserProfile[] | null | undefined)?.forEach(u => {
       avatarMap[u.id] = u.avatar_url;
+      nicknameMap[u.id] = { nickname: u.nickname ?? null, nickname_icon: u.nickname_icon ?? null };
     });
   }
 
@@ -131,13 +135,22 @@ const getGlobalPromptsFromSupabase = async (): Promise<GlobalPrompt[]> => {
     const mappedComments = (commentsByPrompt[p.id] || []).map(c => ({
       ...c,
       userAvatar: (c.userId && c.userId !== 'anonymous' ? avatarMap[c.userId] : c.userAvatar) || c.userAvatar,
+      userName:
+        c.userId && c.userId !== 'anonymous' && nicknameMap[c.userId]?.nickname
+          ? `${nicknameMap[c.userId]?.nickname_icon || ''}${nicknameMap[c.userId]?.nickname || ''}`
+          : c.userName,
     }));
 
     const gp = dbToGlobalPrompt(p, mappedComments);
     const latestAuthorAvatar = gp.authorId !== 'anonymous' ? avatarMap[gp.authorId] : null;
+    const latestAuthorNickname = gp.authorId !== 'anonymous' ? nicknameMap[gp.authorId] : undefined;
     return {
       ...gp,
       authorAvatar: latestAuthorAvatar || gp.authorAvatar,
+      authorName:
+        gp.authorId !== 'anonymous' && latestAuthorNickname?.nickname
+          ? `${latestAuthorNickname.nickname_icon || ''}${latestAuthorNickname.nickname || ''}`
+          : gp.authorName,
     };
   });
 };
