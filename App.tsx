@@ -108,6 +108,7 @@ function App() {
   const [selectedUserAvatar, setSelectedUserAvatar] = useState<string | null>(null);
 
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [nicknameProfile, setNicknameProfile] = useState<nicknameService.NicknameProfile | null>(null);
 
   // Deep Linking & Auth Listener
   useEffect(() => {
@@ -192,9 +193,14 @@ function App() {
       } else {
         setSelectedUserAvatar(stored);
       }
+
+      nicknameService.getNicknameProfile(currentUser.id).then(p => {
+        setNicknameProfile(p);
+      });
     } else {
       setCurrentUserPromptCount(0);
       setSelectedUserAvatar(null);
+      setNicknameProfile(null);
     }
   }, [currentUser, isAuthLoading]);
 
@@ -455,9 +461,7 @@ function App() {
   useEffect(() => {
     if (!currentUser?.id) return;
     const lvl = getEffectiveBadgeLevel(currentUserPromptCount, language);
-    nicknameService.awardNicknameTokensForLevel(currentUser.id, lvl).then(p => {
-      if (p) setNicknameProfile(p);
-    }).catch(() => {
+    nicknameService.awardNicknameTokensForLevel(currentUser.id, lvl).catch(() => {
       // ignore
     });
   }, [currentUser?.id, currentUserPromptCount, language]);
@@ -819,13 +823,22 @@ function App() {
                         {currentUser.displayName?.charAt(0) || 'U'}
                       </div>
                     )}
-                    <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium truncate">{currentUser.displayName}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {(nicknameProfile?.nicknameIcon || '') + (nicknameProfile?.nickname || currentUser.displayName || '')}
+                      </p>
                       <button
                         onClick={() => setIsAvatarPickerOpen(true)}
-                        className="text-xs opacity-60 hover:underline"
+                        className="text-xs opacity-60 hover:underline block"
                       >
                         {dict.changeAvatar}
+                      </button>
+                      <button
+                        onClick={() => setIsNicknameModalOpen(true)}
+                        className="text-xs opacity-60 hover:underline block"
+                      >
+                        {dict.changeNickname}
+                        {typeof nicknameProfile?.nicknameTokens === 'number' ? ` (${nicknameProfile.nicknameTokens})` : ''}
                       </button>
                       <button onClick={handleLogout} className="text-xs opacity-60 hover:underline flex items-center gap-1">
                         <LogOut size={10} /> {dict.logout}
@@ -1267,6 +1280,12 @@ function App() {
         <NicknameModal
           isOpen={isNicknameModalOpen}
           onClose={() => setIsNicknameModalOpen(false)}
+          onSaved={(p) => {
+            setNicknameProfile(p);
+            nicknameService.getNicknameProfile(currentUser.id).then(latest => {
+              if (latest) setNicknameProfile(latest);
+            });
+          }}
           userId={currentUser.id}
           theme={theme}
           language={language}

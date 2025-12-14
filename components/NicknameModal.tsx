@@ -11,7 +11,7 @@ type NicknamesJson = {
 interface NicknameModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaved?: () => void;
+  onSaved?: (profile: nicknameService.NicknameProfile) => void;
   userId: string;
   theme: ThemeId;
   language: LanguageCode;
@@ -96,10 +96,15 @@ const NicknameModal: React.FC<NicknameModalProps> = ({ isOpen, onClose, onSaved,
       const nextTokens = Math.max(0, profile.nicknameTokens - 1);
       await nicknameService.saveNickname(userId, candidate.nickname, candidate.icon);
       await nicknameService.setNicknameTokens(userId, nextTokens);
-      const refreshed = await nicknameService.getNicknameProfile(userId);
-      setProfile(refreshed);
+      const nextProfile: nicknameService.NicknameProfile = {
+        nickname: candidate.nickname,
+        nicknameIcon: candidate.icon,
+        nicknameTokens: nextTokens,
+        nicknameLevel: profile.nicknameLevel,
+      };
+      setProfile(nextProfile);
       setCandidate(null);
-      onSaved?.();
+      onSaved?.(nextProfile);
       onClose();
     } finally {
       setIsSaving(false);
