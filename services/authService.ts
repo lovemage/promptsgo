@@ -24,9 +24,13 @@ const ensureUserProfile = async (user: User) => {
 
   // 1) Ensure a row exists (and keep basic profile fields in sync)
   // Use explicit onConflict to avoid PostgREST 409 conflicts.
+  // IMPORTANT:
+  // Do NOT blindly write email on every login.
+  // In this project the users table commonly has a unique constraint on email.
+  // If an old row exists with the same email (different id), an upsert that includes email
+  // will fail with 23505 users_email_key and block profile initialization.
   const baseProfile: Record<string, any> = {
     id: user.id,
-    email: user.email,
     full_name: user.displayName,
     updated_at: now,
   };
@@ -48,6 +52,24 @@ const ensureUserProfile = async (user: User) => {
       if (minError) console.error('Failed minimal profile upsert:', minError);
     }
     return;
+  }
+
+  // Initialize email only if DB email is currently NULL.
+  // If it conflicts with another row's email unique constraint, ignore.
+  if (user.email) {
+    const { error: emailInitError } = await supabase
+      .from('users')
+      .update({ email: user.email, updated_at: now })
+      .eq('id', user.id)
+      .is('email', null);
+
+    if (emailInitError && (emailInitError as any).code !== '23505') {
+      console.warn('Failed to init email:', {
+        code: (emailInitError as any).code,
+        message: emailInitError.message,
+        details: (emailInitError as any).details,
+      });
+    }
   }
 
   // 2) Initialize avatar_url from provider photoURL ONLY if DB avatar_url is null.

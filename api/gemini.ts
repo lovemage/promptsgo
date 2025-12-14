@@ -9,8 +9,25 @@ const json = (res: any, status: number, body: any) => {
 };
 
 const extractText = (data: any): string | null => {
-  const t = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  return typeof t === 'string' ? t : null;
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts) || parts.length === 0) return null;
+  const texts = parts
+    .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
+    .filter((s: string) => s.trim());
+  if (texts.length === 0) return null;
+  return texts.join('');
+};
+
+const summarizeGeminiResponse = (data: any) => {
+  const pf = data?.promptFeedback;
+  const cand0 = data?.candidates?.[0];
+  const safety = cand0?.safetyRatings;
+  return {
+    promptFeedback: pf,
+    candidate0FinishReason: cand0?.finishReason,
+    candidate0SafetyRatings: safety,
+    candidatesCount: Array.isArray(data?.candidates) ? data.candidates.length : 0,
+  };
 };
 
 const stripCodeFences = (s: string) => {
@@ -132,7 +149,10 @@ ${safePrompt}`;
     const data = await resp.json();
     const text = extractText(data);
     if (!text) {
-      return json(res, 500, { error: 'No text returned from Gemini' });
+      return json(res, 500, {
+        error: 'No text returned from Gemini',
+        debug: summarizeGeminiResponse(data),
+      });
     }
 
     if (safeTask === 'refine') {
