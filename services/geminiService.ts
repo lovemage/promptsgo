@@ -6,7 +6,11 @@ export const refinePromptWithAI = async (originalPrompt: string): Promise<string
       body: JSON.stringify({ task: 'refine', prompt: originalPrompt }),
     });
 
-    if (!resp.ok) return originalPrompt;
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      console.error('Gemini refine API error:', resp.status, errText);
+      return originalPrompt;
+    }
     const data = await resp.json();
     return (typeof data?.refined === 'string' && data.refined.trim()) ? data.refined.trim() : originalPrompt;
   } catch (error) {
@@ -22,7 +26,11 @@ export const generateShareMetaWithAI = async (promptText: string, language?: str
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task: 'share_meta', prompt: promptText, language }),
     });
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      console.error('Gemini share_meta API error:', resp.status, errText);
+      return null;
+    }
     const data = await resp.json();
     const title = typeof data?.title === 'string' ? data.title : '';
     const description = typeof data?.description === 'string' ? data.description : '';

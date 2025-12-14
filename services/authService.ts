@@ -20,46 +20,56 @@ const notifyListeners = () => {
 const ensureUserProfile = async (user: User) => {
   if (!supabase) return;
 
-  // Do not overwrite an existing custom avatar_url stored in DB.
-  // Only initialize avatar_url from provider photoURL if DB has no avatar_url yet.
-  let shouldInitAvatarUrl = false;
-  try {
-    const { data: existing, error: selectError } = await supabase
-      .from('users')
-      .select('avatar_url')
-      .eq('id', user.id)
-      .maybeSingle();
+  const now = new Date().toISOString();
 
-    if (!selectError) {
-      shouldInitAvatarUrl = !existing?.avatar_url;
-    }
-  } catch {
-    // If select fails (e.g. RLS/column mismatch), fall back to upsert without avatar_url.
-    shouldInitAvatarUrl = false;
-  }
-
-  const profile: Record<string, any> = {
+  // 1) Ensure a row exists (and keep basic profile fields in sync)
+  // Use explicit onConflict to avoid PostgREST 409 conflicts.
+  const baseProfile: Record<string, any> = {
     id: user.id,
     email: user.email,
     full_name: user.displayName,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
 
-  if (shouldInitAvatarUrl && user.photoURL) {
-    profile.avatar_url = user.photoURL;
+  const { error: upsertError } = await supabase
+    .from('users')
+    .upsert(baseProfile, { onConflict: 'id' });
+
+  if (upsertError) {
+    console.warn('Failed to ensure user profile:', {
+      code: (upsertError as any).code,
+      message: upsertError.message,
+      details: (upsertError as any).details,
+      hint: (upsertError as any).hint,
+    });
+    // If column missing, try minimal insert (just ID) to satisfy Foreign Key
+    if (upsertError.message?.includes('column') || (upsertError as any).code === 'PGRST204') {
+      const { error: minError } = await supabase.from('users').upsert({ id: user.id }, { onConflict: 'id' });
+      if (minError) console.error('Failed minimal profile upsert:', minError);
+    }
+    return;
   }
 
-  // Upsert into 'users' table to satisfy foreign key constraints
-  const { error } = await supabase.from('users').upsert(profile);
-  
-  if (error) {
-      console.warn("Failed to ensure user profile:", error);
-      // If column missing, try minimal insert (just ID) to satisfy Foreign Key
-      if (error.message?.includes("column") || error.code === 'PGRST204') {
-          const { error: minError } = await supabase.from('users').upsert({ id: user.id });
-          if (minError) console.error("Failed minimal profile upsert:", minError);
-      }
+  // 2) Initialize avatar_url from provider photoURL ONLY if DB avatar_url is null.
+  // This prevents overwriting a user-selected custom avatar.
+  if (user.photoURL) {
+    const { error: avatarInitError } = await supabase
+      .from('users')
+      .update({ avatar_url: user.photoURL, updated_at: now })
+      .eq('id', user.id)
+      .is('avatar_url', null);
+
+    if (avatarInitError) {
+      // This can fail under strict RLS; ignore but keep a useful log.
+      console.warn('Failed to init avatar_url from provider photoURL:', {
+        code: (avatarInitError as any).code,
+        message: avatarInitError.message,
+        details: (avatarInitError as any).details,
+      });
+    }
   }
+  
+  // done
 };
 
 const updateCurrentUser = async (session: any) => {
