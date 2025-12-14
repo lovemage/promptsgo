@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Star, Palette, Code, PenTool, Camera, Music, Video, Gamepad2, Cpu, Zap, Heart, Smile, Briefcase, Rocket, Coffee, Tag, Plus } from 'lucide-react';
 import { Prompt, Category, Dictionary, ThemeId } from '../types';
 import { generateId } from '../services/storageService';
-import { refinePromptWithAI } from '../services/geminiService';
+import { refinePromptWithAI, generateShareMetaWithAI } from '../services/geminiService';
 import { getUniqueModelTags } from '../services/globalService';
 
 interface PromptModalProps {
@@ -14,6 +14,7 @@ interface PromptModalProps {
   categories: Category[];
   dict: Dictionary;
   theme: ThemeId;
+  language: string;
 }
 
 const getIcon = (name: string) => {
@@ -22,7 +23,7 @@ const getIcon = (name: string) => {
 };
 
 const PromptModal: React.FC<PromptModalProps> = ({ 
-  isOpen, onClose, onSave, initialPrompt, categories, dict, theme 
+  isOpen, onClose, onSave, initialPrompt, categories, dict, theme, language
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -86,9 +87,20 @@ const PromptModal: React.FC<PromptModalProps> = ({
   const handleRefine = async () => {
     if (!positive) return;
     setIsRefining(true);
-    const improved = await refinePromptWithAI(positive);
-    setPositive(improved);
-    setIsRefining(false);
+    try {
+      const improved = await refinePromptWithAI(positive);
+      setPositive(improved);
+
+      if ((!title.trim() || !description.trim()) && improved.trim()) {
+        const meta = await generateShareMetaWithAI(improved, language);
+        if (meta) {
+          if (!title.trim() && meta.title.trim()) setTitle(meta.title.trim());
+          if (!description.trim() && meta.description.trim()) setDescription(meta.description.trim());
+        }
+      }
+    } finally {
+      setIsRefining(false);
+    }
   };
 
   const toggleCategory = (id: string) => {

@@ -23,7 +23,7 @@ export const setStoredUserAvatar = (userId: string, avatarUrl: string) => {
 
 export const getEffectiveUserAvatar = (user: User | null): string | null => {
   if (!user?.id) return null;
-  return getStoredUserAvatar(user.id) || DEFAULT_AVATAR_URL;
+  return getStoredUserAvatar(user.id) || user.photoURL || DEFAULT_AVATAR_URL;
 };
 
 export const getEffectiveBadgeLevel = (promptCount: number, language: string) => {

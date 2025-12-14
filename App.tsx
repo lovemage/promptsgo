@@ -1255,6 +1255,7 @@ function App() {
         categories={categories}
         dict={dict}
         theme={theme}
+        language={language}
       />
 
       {currentUser && (
