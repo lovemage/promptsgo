@@ -71,6 +71,34 @@ const UpgradeGuideView: React.FC<UpgradeGuideViewProps> = ({ language, theme, di
         )}
       </div>
 
+      <h2 className={sectionTitleClass}>{t('이 페이지는 어디에 있나요?', 'Where is this page?', '這個頁面在哪裡？', 'このページはどこ？')}</h2>
+      <div className={cardClass}>
+        <div className="text-sm opacity-80 leading-relaxed">
+          {t(
+            '화면 하단의 Footer에서 "업그레이드 안내"(Upgrade Guide)를 눌러 들어올 수 있어요.',
+            'You can open this from the Footer at the bottom: tap "Upgrade Guide".',
+            '你可以在畫面底部的 Footer 點選「升級說明（Upgrade Guide）」進入本頁。',
+            '画面下部のフッターから「Upgrade Guide」を押すと開けます。'
+          )}
+        </div>
+      </div>
+
+      <h2 className={sectionTitleClass}>{t('아바타는 어떻게 바꾸나요?', 'How do I change my avatar?', '如何更換頭像？', 'アバターの変更方法')}</h2>
+      <div className={cardClass}>
+        <div className="text-sm opacity-80 leading-relaxed">
+          {t(
+            '1) 왼쪽 사이드바를 엽니다.\n2) 프로필 영역에서 "아바타 변경"(Change avatar)을 누릅니다.\n3) 해금된 아바타를 선택하고 저장합니다.\n\n※ 레벨이 올라가면 더 많은 기본 아바타가 해금됩니다. 스타 창작자 이후에는 커스텀 업로드도 가능합니다.',
+            '1) Open the left sidebar.\n2) In the profile area, tap "Change avatar".\n3) Pick an unlocked avatar and save.\n\nNote: Higher levels unlock more default avatars. After Star Creator, custom upload is available.',
+            '1）打開左側側邊欄。\n2）在個人資訊區點選「更換頭像（Change avatar）」。\n3）選擇已解鎖的頭像並儲存。\n\n註：等級越高會解鎖更多預設頭像；達到星級創作者後可上傳自訂頭像。',
+            '1）左のサイドバーを開きます。\n2）プロフィール欄の「Change avatar」を押します。\n3）解除済みのアバターを選んで保存します。\n\n注：レベルが上がるほど基本アバターが増え、スタークリエイター以降はカスタムアップロードも可能です。'
+          )
+            .split('\n')
+            .map((line, idx) => (
+              <div key={idx}>{line}</div>
+            ))}
+        </div>
+      </div>
+
       <h2 className={sectionTitleClass}>{t('레벨 & 배지', 'Levels & Badges', '等級與徽章', 'レベルとバッジ')}</h2>
       <div className={cardClass}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
