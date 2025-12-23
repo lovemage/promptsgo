@@ -284,13 +284,13 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
           {/* Gallery Modal */}
           {showGallery && mediaList.length > 0 && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200"
+              className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200"
               onClick={() => setShowGallery(false)}
             >
               {/* Close Button - Moved outside content container to avoid overlap/z-index issues */}
               <button
                   onClick={(e) => { e.stopPropagation(); setShowGallery(false); }}
-                  className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/40 p-2 rounded-full hover:bg-black/60 z-[60]"
+                  className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/40 p-2 rounded-full hover:bg-black/60 z-[90]"
                   title="Close"
               >
                   <X size={32} />
@@ -451,6 +451,13 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                  #{tag}
                </span>
              ))}
+           </div>
+         )}
+
+         {/* Description */}
+         {prompt.description && (
+           <div className={`text-sm leading-relaxed ${isDetailView ? 'whitespace-pre-line' : 'line-clamp-2'} ${textMuted}`}>
+             {prompt.description}
            </div>
          )}
 
