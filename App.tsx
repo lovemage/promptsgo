@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Plus, Search, LayoutGrid, Settings, Trash2,
   Copy, Edit2, Tag, Globe, ChevronsUpDown, Check, Palette as PaletteIcon,
@@ -119,6 +120,12 @@ function App() {
        setCurrentView('global');
        setHighlightPromptId(promptId);
     }
+    
+    // Check lang param
+    const langParam = params.get('lang');
+    if (langParam && ['en', 'zh-TW', 'ja', 'ko'].includes(langParam)) {
+       setLanguage(langParam as LanguageCode);
+    }
 
     // Check if running in WebView
     if (isWebView()) {
@@ -162,7 +169,13 @@ function App() {
     const loaded = loadState(currentUser?.id);
     if (loaded.prompts) setPrompts(loaded.prompts);
     if (loaded.categories) setCategories(loaded.categories);
-    if (loaded.language) setLanguage(loaded.language);
+    if (loaded.language) {
+      // Only load language from storage if NOT present in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (!urlParams.get('lang')) {
+        setLanguage(loaded.language);
+      }
+    }
     if (loaded.theme) setTheme(loaded.theme);
     if (loaded.collectedGlobalIds) setCollectedGlobalIds(loaded.collectedGlobalIds);
     
@@ -175,7 +188,13 @@ function App() {
             if (remote.prompts) setPrompts(remote.prompts);
             if (remote.categories) setCategories(remote.categories);
             if (remote.collectedGlobalIds) setCollectedGlobalIds(remote.collectedGlobalIds);
-            if (remote.language) setLanguage(remote.language);
+            if (remote.language) {
+               // Only sync language from cloud if NOT present in URL
+               const urlParams = new URLSearchParams(window.location.search);
+               if (!urlParams.get('lang')) {
+                  setLanguage(remote.language);
+               }
+            }
             if (remote.theme) setTheme(remote.theme);
          }
       });
@@ -647,6 +666,15 @@ function App() {
         '--logo-bg': styles.logoBg 
       } as React.CSSProperties}
     >
+      <Helmet>
+        <title>{dict.appTitle} | Share & Save your prompts Easily</title>
+        <meta name="description" content={dict.shareDescription} />
+        <meta property="og:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
+        <meta property="og:description" content={dict.shareDescription} />
+        <meta property="twitter:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
+        <meta property="twitter:description" content={dict.shareDescription} />
+        <link rel="canonical" href={`https://promptsgo.cc${window.location.search}`} />
+      </Helmet>
       
       {/* Mobile Header */}
       <div className={`md:hidden flex items-center justify-between p-4 border-b backdrop-blur-md z-40 sticky top-0 ${styles.header}`}>

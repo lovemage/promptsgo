@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { GlobalPrompt, Dictionary, ThemeId, User, LanguageCode } from '../types';
 import GlobalPromptCard from './GlobalPromptCard';
 import * as globalService from '../services/globalService';
@@ -68,6 +69,13 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
     loadTags();
   }, []);
 
+  useEffect(() => {
+    if (highlightPromptId && prompts.length > 0) {
+       const found = prompts.find(p => p.id === highlightPromptId);
+       if (found) setSelectedPrompt(found);
+    }
+  }, [highlightPromptId, prompts]);
+
   const filteredPrompts = prompts.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.some(t => t.toLowerCase() === activeTag.toLowerCase());
     const matchModel = activeModel === 'All' || (p.modelTags && p.modelTags.includes(activeModel));
@@ -93,6 +101,20 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
 
   return (
     <div className="flex flex-col h-full">
+       <Helmet>
+        <title>{viewMode === 'collection' ? 'GP Collection' : dict.globalPrompts} | PromptsGo</title>
+       </Helmet>
+       {selectedPrompt && (
+        <Helmet>
+           <title>{selectedPrompt.title} | PromptsGo</title>
+           <meta name="description" content={selectedPrompt.description || selectedPrompt.positive.slice(0, 150)} />
+           <meta property="og:title" content={`${selectedPrompt.title} | PromptsGo`} />
+           <meta property="og:description" content={selectedPrompt.description || selectedPrompt.positive.slice(0, 150)} />
+           {selectedPrompt.image && <meta property="og:image" content={selectedPrompt.image} />}
+           {selectedPrompt.image && <meta name="twitter:image" content={selectedPrompt.image} />}
+           <link rel="canonical" href={`https://promptsgo.cc/?promptId=${selectedPrompt.id}`} />
+        </Helmet>
+      )}
        {/* Top Navigation Bar (Tags & Filters) */}
        <div className={`sticky top-0 z-10 px-8 py-4 border-b flex flex-col gap-4 backdrop-blur-md ${topNavBgClass}`}>
 
