@@ -24,7 +24,7 @@ dotenv.config({ path: path.join(projectRoot, '.env.local') });
 // Setup Supabase
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-const baseUrl = process.env.SITE_URL || 'https://www.promptsgo.cc';
+const baseUrl = process.env.SITE_URL || 'https://promptsgo.cc';
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn('⚠️  Supabase credentials not found in .env or .env.local');

@@ -673,7 +673,7 @@ function App() {
         <meta property="og:description" content={dict.shareDescription} />
         <meta property="twitter:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
         <meta property="twitter:description" content={dict.shareDescription} />
-        <link rel="canonical" href={`https://www.promptsgo.cc${window.location.search}`} />
+        <link rel="canonical" href={`https://promptsgo.cc${window.location.search}`} />
       </Helmet>
 
       {/* Mobile Header */}
@@ -915,8 +915,8 @@ function App() {
                           setIsLangMenuOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${language === lang.code
-                            ? 'text-blue-500 bg-blue-500/10'
-                            : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                          ? 'text-blue-500 bg-blue-500/10'
+                          : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                           }`}
                       >
                         {lang.label}
@@ -968,10 +968,10 @@ function App() {
                             }
                           }}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${theme === t.id
-                              ? 'text-blue-500 bg-blue-500/10'
-                              : isLocked
-                                ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
-                                : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                            ? 'text-blue-500 bg-blue-500/10'
+                            : isLocked
+                              ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
+                              : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
                             }`}
                           title={isLocked ? `Share ${requiredCount} prompts to unlock` : ''}
                         >

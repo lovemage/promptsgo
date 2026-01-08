@@ -114,7 +114,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                {selectedPrompt.image && <meta property="og:image" content={selectedPrompt.image} />}
                {selectedPrompt.image && <meta name="twitter:image" content={selectedPrompt.image} />}
                <meta name="twitter:card" content="summary_large_image" />
-               <link rel="canonical" href={`https://www.promptsgo.cc/?promptId=${selectedPrompt.id}`} />
+               <link rel="canonical" href={`https://promptsgo.cc/?promptId=${selectedPrompt.id}`} />
 
                {/* Schema.org Structured Data */}
                <script type="application/ld+json">
