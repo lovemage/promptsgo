@@ -31,24 +31,24 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('   Generating basic sitemap only.');
 }
 
-const supabase = (supabaseUrl && supabaseKey) 
-  ? createClient(supabaseUrl, supabaseKey) 
+const supabase = (supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
   : null;
 
 const languages = ['en', 'zh-TW', 'ja', 'ko'];
 
 const generateSitemap = async () => {
   console.log('🚀 Starting sitemap generation...');
-  
+
   let prompts = [];
-  
+
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('global_prompts')
         .select('id, updated_at, created_at')
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         console.error('❌ Error fetching prompts from Supabase:', error.message);
       } else {
@@ -68,11 +68,11 @@ const generateSitemap = async () => {
     xml += '  <url>\n';
     xml += `    <loc>${loc}</loc>\n`;
     if (lastmod) {
-        try {
-            xml += `    <lastmod>${new Date(lastmod).toISOString()}</lastmod>\n`;
-        } catch (e) {
-            // Ignore invalid dates
-        }
+      try {
+        xml += `    <lastmod>${new Date(lastmod).toISOString()}</lastmod>\n`;
+      } catch (e) {
+        // Ignore invalid dates
+      }
     }
     xml += `    <changefreq>${changefreq}</changefreq>\n`;
     xml += `    <priority>${priority}</priority>\n`;
@@ -82,14 +82,20 @@ const generateSitemap = async () => {
   // 1. Static Pages (Home & Global View) with Language Variants
   languages.forEach(lang => {
     const isDefault = lang === 'en';
+    // For Home, we use ?lang=xx or nothing.
+    // If it's just one param, it doesn't need &amp;, but ?lang=... is fine legally.
+    // However, if we do have multiple params, we need &amp;.
+
     const langParam = isDefault ? '' : `?lang=${lang}`;
-    const langParamAppend = isDefault ? '' : `&lang=${lang}`; // For URLs that already have params
+    const langParamAppend = isDefault ? '' : `&amp;lang=${lang}`; // For URLs that already have params
 
     // Home Page
     const homeUrl = isDefault ? baseUrl : `${baseUrl}/${langParam}`;
     addUrl(homeUrl, new Date().toISOString(), 'daily', 1.0);
 
     // Global View Page
+    // This one has ?view=global AND potentially &lang=...
+    // So `?view=global` is fine, but if we append lang, it must be `&amp;lang=`
     const globalUrl = `${baseUrl}/?view=global${langParamAppend}`;
     addUrl(globalUrl, new Date().toISOString(), 'daily', 0.9);
   });
@@ -102,12 +108,19 @@ const generateSitemap = async () => {
 
   processedPrompts.forEach(prompt => {
     const lastmod = prompt.updated_at || prompt.created_at;
-    
+
     languages.forEach(lang => {
-       const isDefault = lang === 'en';
-       const langParamAppend = isDefault ? '' : `&lang=${lang}`;
-       const url = `${baseUrl}/?promptId=${prompt.id}${langParamAppend}`;
-       addUrl(url, lastmod, 'weekly', 0.8);
+      const isDefault = lang === 'en';
+      // URL components must be joined before escaping, or at least the params part
+      // But simpler is to build string then escape. However, standard URL encoding isn't XML escaping.
+      // XML needs & -> &amp;
+
+      const langParamAppend = isDefault ? '' : `&amp;lang=${lang}`;
+      // Note: baseUrl might have query params already? No, usually siteroot.
+      // But line 110 uses ?promptId=...
+
+      const url = `${baseUrl}/?promptId=${prompt.id}${langParamAppend}`;
+      addUrl(url, lastmod, 'weekly', 0.8);
     });
   });
 
