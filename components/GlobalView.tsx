@@ -114,7 +114,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                {selectedPrompt.image && <meta property="og:image" content={selectedPrompt.image} />}
                {selectedPrompt.image && <meta name="twitter:image" content={selectedPrompt.image} />}
                <meta name="twitter:card" content="summary_large_image" />
-               <link rel="canonical" href={`https://promptsgo.cc/?promptId=${selectedPrompt.id}`} />
+               <link rel="canonical" href={`https://www.promptsgo.cc/?promptId=${selectedPrompt.id}`} />
 
                {/* Schema.org Structured Data */}
                <script type="application/ld+json">
@@ -139,8 +139,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
 
             <div className="flex items-center justify-between">
                <h2 className={`text-xl font-bold whitespace-nowrap ${theme === 'journal' ? 'text-[#2c2c2c]' :
-                     theme === 'binder' ? 'text-slate-200' :
-                        'bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent'
+                  theme === 'binder' ? 'text-slate-200' :
+                     'bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent'
                   }`}>
                   {viewMode === 'collection' ? 'GP Collection' : dict.globalPrompts}
                </h2>
@@ -152,8 +152,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                         value={activeModel}
                         onChange={e => setActiveModel(e.target.value)}
                         className={`appearance-none pl-8 pr-8 py-1.5 rounded-full text-xs font-medium border outline-none cursor-pointer ${theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-200 focus:border-[#5d5d5d]' :
-                              isDark ? 'bg-black/20 border-white/10 focus:border-white/30 text-white' :
-                                 'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300 text-slate-700'
+                           isDark ? 'bg-black/20 border-white/10 focus:border-white/30 text-white' :
+                              'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300 text-slate-700'
                            }`}
                      >
                         <option value="All">All Models</option>
@@ -172,10 +172,10 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                         onChange={e => setSearch(e.target.value)}
                         placeholder={dict.searchPlaceholder}
                         className={`w-full pl-9 pr-3 py-1.5 rounded-full text-xs border outline-none ${theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-200 placeholder-slate-400 focus:border-[#5d5d5d]' :
-                              isDark ? 'bg-black/20 border-white/10 focus:border-white/30' :
-                                 theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
-                                    theme === 'glass' ? 'bg-white/40 border-white/30 text-slate-800 placeholder-slate-500 focus:bg-white/50' :
-                                       'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
+                           isDark ? 'bg-black/20 border-white/10 focus:border-white/30' :
+                              theme === 'journal' ? 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#80c63c] focus:ring-1 focus:ring-[#80c63c]/20' :
+                                 theme === 'glass' ? 'bg-white/40 border-white/30 text-slate-800 placeholder-slate-500 focus:bg-white/50' :
+                                    'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300'
                            }`}
                      />
                   </div>
@@ -191,8 +191,8 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                         key={tag}
                         onClick={() => setActiveTag(tag)}
                         className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${activeTag === tag
-                              ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : theme === 'binder' ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' : theme === 'glass' ? 'bg-white/60 text-slate-900 border-white/40 shadow-lg backdrop-blur-md' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
-                              : `${theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-300 hover:bg-[#4d4d4d]' : isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : theme === 'glass' ? 'bg-white/20 border-white/20 hover:bg-white/30 text-slate-700' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
+                           ? (theme === 'journal' ? 'bg-[#80c63c] text-white border-[#80c63c] shadow-md shadow-[#80c63c]/20' : theme === 'binder' ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' : theme === 'glass' ? 'bg-white/60 text-slate-900 border-white/40 shadow-lg backdrop-blur-md' : 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20')
+                           : `${theme === 'binder' ? 'bg-[#3d3d3d] border-[#4d4d4d] text-slate-300 hover:bg-[#4d4d4d]' : isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : theme === 'glass' ? 'bg-white/20 border-white/20 hover:bg-white/30 text-slate-700' : 'bg-slate-100 border-transparent hover:bg-slate-200'} opacity-70 hover:opacity-100`
                            }`}
                      >
                         {tag}

@@ -4,5 +4,5 @@ Disallow: /admin
 Disallow: /.env
 Disallow: /node_modules
 
-Sitemap: https://promptsgo.cc/sitemap.xml
+Sitemap: https://www.promptsgo.cc/sitemap.xml
 

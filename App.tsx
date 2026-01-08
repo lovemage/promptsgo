@@ -36,7 +36,7 @@ import * as nicknameService from './services/nicknameService';
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
   const map: Record<string, React.ElementType> = {
-    Palette, Code, PenTool, Camera, Music, Video, Gamepad2, 
+    Palette, Code, PenTool, Camera, Music, Video, Gamepad2,
     Cpu, Zap, Heart, Star, Smile, Briefcase, Rocket, Coffee
   };
   return map[iconName] || Star;
@@ -69,21 +69,21 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshGlobal, setRefreshGlobal] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   // Navigation State
   const [currentView, setCurrentView] = useState<'local' | 'global' | 'collection' | 'terms' | 'privacy' | 'upgrade'>('global');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  
+
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [theme, setTheme] = useState<ThemeId>('journal');
-  
+
   // UI States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  
+
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [sharingPrompt, setSharingPrompt] = useState<Prompt | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -117,14 +117,14 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     const promptId = params.get('promptId');
     if (promptId) {
-       setCurrentView('global');
-       setHighlightPromptId(promptId);
+      setCurrentView('global');
+      setHighlightPromptId(promptId);
     }
-    
+
     // Check lang param
     const langParam = params.get('lang');
     if (langParam && ['en', 'zh-TW', 'ja', 'ko'].includes(langParam)) {
-       setLanguage(langParam as LanguageCode);
+      setLanguage(langParam as LanguageCode);
     }
 
     // Check if running in WebView
@@ -142,17 +142,17 @@ function App() {
 
       // Check for Onboarding Tour
       if (user) {
-         const hasSeenTour = localStorage.getItem(`promptsgo_tour_completed_${user.id}`);
-         if (!hasSeenTour) {
-            // Delay slightly to ensure UI is rendered
-            timer = setTimeout(() => {
-               // Ensure we are on local view for the tour
-               setCurrentView('local');
-               setIsTourOpen(true);
-               // Ensure sidebar is open for the first step
-               setIsSidebarOpen(true);
-            }, 1000);
-         }
+        const hasSeenTour = localStorage.getItem(`promptsgo_tour_completed_${user.id}`);
+        if (!hasSeenTour) {
+          // Delay slightly to ensure UI is rendered
+          timer = setTimeout(() => {
+            // Ensure we are on local view for the tour
+            setCurrentView('local');
+            setIsTourOpen(true);
+            // Ensure sidebar is open for the first step
+            setIsSidebarOpen(true);
+          }, 1000);
+        }
       }
     });
 
@@ -178,25 +178,25 @@ function App() {
     }
     if (loaded.theme) setTheme(loaded.theme);
     if (loaded.collectedGlobalIds) setCollectedGlobalIds(loaded.collectedGlobalIds);
-    
+
     setSelectedCategoryId(null);
 
     // Sync from Cloud if logged in
     if (currentUser?.id) {
       loadRemoteState(currentUser.id).then(remote => {
-         if (remote) {
-            if (remote.prompts) setPrompts(remote.prompts);
-            if (remote.categories) setCategories(remote.categories);
-            if (remote.collectedGlobalIds) setCollectedGlobalIds(remote.collectedGlobalIds);
-            if (remote.language) {
-               // Only sync language from cloud if NOT present in URL
-               const urlParams = new URLSearchParams(window.location.search);
-               if (!urlParams.get('lang')) {
-                  setLanguage(remote.language);
-               }
+        if (remote) {
+          if (remote.prompts) setPrompts(remote.prompts);
+          if (remote.categories) setCategories(remote.categories);
+          if (remote.collectedGlobalIds) setCollectedGlobalIds(remote.collectedGlobalIds);
+          if (remote.language) {
+            // Only sync language from cloud if NOT present in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.get('lang')) {
+              setLanguage(remote.language);
             }
-            if (remote.theme) setTheme(remote.theme);
-         }
+          }
+          if (remote.theme) setTheme(remote.theme);
+        }
       });
 
       // Load current user's prompt count for badge
@@ -226,16 +226,16 @@ function App() {
   // Save Data
   useEffect(() => {
     if (isAuthLoading) return;
-    
+
     const state = { prompts, categories, language, theme, collectedGlobalIds };
     saveState(state, currentUser?.id);
-    
+
     // Sync to Cloud if logged in (Debounced)
     if (currentUser?.id) {
-       const timer = setTimeout(() => {
-          saveRemoteState(currentUser.id, state);
-       }, 2000);
-       return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        saveRemoteState(currentUser.id, state);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [prompts, categories, language, theme, collectedGlobalIds, currentUser, isAuthLoading]);
 
@@ -244,8 +244,8 @@ function App() {
   const filteredPrompts = useMemo(() => {
     return prompts.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.positive.toLowerCase().includes(searchQuery.toLowerCase());
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.positive.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategoryId ? p.categoryIds.includes(selectedCategoryId) : true;
       const matchesUncategorized = selectedCategoryId === 'uncategorized' ? p.categoryIds.length === 0 : true;
 
@@ -461,19 +461,19 @@ function App() {
   };
 
   const handleTourComplete = useCallback(() => {
-     setIsTourOpen(false);
-     setIsSidebarOpen(false); // Close sidebar after tour
-     if (currentUser) {
-        localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
+    setIsTourOpen(false);
+    setIsSidebarOpen(false); // Close sidebar after tour
+    if (currentUser) {
+      localStorage.setItem(`promptsgo_tour_completed_${currentUser.id}`, 'true');
 
-        // Initialize nickname rolls and prompt nickname selection the first time.
-        (async () => {
-          const p = await nicknameService.ensureNicknameInitialized(currentUser.id, 3);
-          if (p && !p.nickname) {
-            setIsNicknameModalOpen(true);
-          }
-        })();
-     }
+      // Initialize nickname rolls and prompt nickname selection the first time.
+      (async () => {
+        const p = await nicknameService.ensureNicknameInitialized(currentUser.id, 3);
+        if (p && !p.nickname) {
+          setIsNicknameModalOpen(true);
+        }
+      })();
+    }
   }, [currentUser]);
 
   // Award nickname tokens on level-up (stackable) and persist to DB.
@@ -486,47 +486,47 @@ function App() {
   }, [currentUser?.id, currentUserPromptCount, language]);
 
   const handleTourStepChange = useCallback((index: number) => {
-     // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
-     if (index <= 2) {
-        setIsSidebarOpen(true);
-     } else {
-        // Step 3 (Share) is in main area
-        setIsSidebarOpen(false);
-     }
+    // Steps 0 (Nav), 1 (New Prompt), 2 (Categories) are in sidebar
+    if (index <= 2) {
+      setIsSidebarOpen(true);
+    } else {
+      // Step 3 (Share) is in main area
+      setIsSidebarOpen(false);
+    }
   }, []);
 
   const tourSteps = useMemo(() => [
-     {
-        targetId: 'nav-local-prompts',
-        title: dict.tourStep1Title,
-        content: dict.tourStep1Content,
-        position: 'right' as const
-     },
-     {
-        targetId: 'btn-new-prompt',
-        title: dict.tourStep2Title,
-        content: dict.tourStep2Content,
-        position: 'bottom' as const
-     },
-     {
-        targetId: 'btn-category-settings',
-        title: dict.tourStep3Title,
-        content: dict.tourStep3Content,
-        position: 'right' as const
-     },
-     {
-        targetId: 'btn-share-prompt-0',
-        title: dict.tourStep4Title,
-        content: dict.tourStep4Content,
-        position: 'left' as const
-     },
-     {
-        targetId: 'btn-share-prompt-0',
-        title: dict.tourStep5Title,
-        content: dict.tourStep5Content,
-        position: 'left' as const,
-        showBadgePreview: true
-     }
+    {
+      targetId: 'nav-local-prompts',
+      title: dict.tourStep1Title,
+      content: dict.tourStep1Content,
+      position: 'right' as const
+    },
+    {
+      targetId: 'btn-new-prompt',
+      title: dict.tourStep2Title,
+      content: dict.tourStep2Content,
+      position: 'bottom' as const
+    },
+    {
+      targetId: 'btn-category-settings',
+      title: dict.tourStep3Title,
+      content: dict.tourStep3Content,
+      position: 'right' as const
+    },
+    {
+      targetId: 'btn-share-prompt-0',
+      title: dict.tourStep4Title,
+      content: dict.tourStep4Content,
+      position: 'left' as const
+    },
+    {
+      targetId: 'btn-share-prompt-0',
+      title: dict.tourStep5Title,
+      content: dict.tourStep5Content,
+      position: 'left' as const,
+      showBadgePreview: true
+    }
   ], [dict]);
 
   // --- THEMING ---
@@ -534,7 +534,7 @@ function App() {
 
   // Styles definitions
   const getStyles = () => {
-    switch(theme) {
+    switch (theme) {
       case 'dark':
         return {
           app: 'bg-slate-900 text-slate-100',
@@ -636,14 +636,14 @@ function App() {
 
   const styles = getStyles();
 
-  const languages: {code: LanguageCode; label: string}[] = [
+  const languages: { code: LanguageCode; label: string }[] = [
     { code: 'en', label: 'English' },
     { code: 'zh-TW', label: '繁體中文' },
     { code: 'ja', label: '日本語' },
     { code: 'ko', label: '한국어' },
   ];
 
-  const themes: {id: ThemeId; label: string}[] = [
+  const themes: { id: ThemeId; label: string }[] = [
     { id: 'light', label: dict.themeLight },
     { id: 'dark', label: dict.themeDark },
     { id: 'binder', label: dict.themeBinder },
@@ -660,10 +660,10 @@ function App() {
   const allowCustomAvatarUpload = currentUserLevel > 5;
 
   return (
-    <div 
-      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${styles.app}`} 
-      style={{ 
-        '--logo-bg': styles.logoBg 
+    <div
+      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${styles.app}`}
+      style={{
+        '--logo-bg': styles.logoBg
       } as React.CSSProperties}
     >
       <Helmet>
@@ -673,28 +673,28 @@ function App() {
         <meta property="og:description" content={dict.shareDescription} />
         <meta property="twitter:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
         <meta property="twitter:description" content={dict.shareDescription} />
-        <link rel="canonical" href={`https://promptsgo.cc${window.location.search}`} />
+        <link rel="canonical" href={`https://www.promptsgo.cc${window.location.search}`} />
       </Helmet>
-      
+
       {/* Mobile Header */}
       <div className={`md:hidden flex items-center justify-between p-4 border-b backdrop-blur-md z-40 sticky top-0 ${styles.header}`}>
-         <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
-               <Menu size={24} />
-            </button>
-            <div className="flex items-center gap-2">
-               <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
-               <span className="font-bold">{dict.appTitle}</span>
-            </div>
-         </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+            <Menu size={24} />
+          </button>
+          <div className="flex items-center gap-2">
+            <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
+            <span className="font-bold">{dict.appTitle}</span>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-         <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
-            onClick={() => setIsSidebarOpen(false)}
-         />
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
 
       {/* Sidebar */}
@@ -707,16 +707,16 @@ function App() {
             </span>
           </h1>
         </div>
-        
+
         {/* Mobile Sidebar Header */}
         <div className="p-4 md:hidden flex items-center justify-between border-b border-gray-500/10 mb-2">
-            <h1 className="text-lg font-bold flex items-center gap-2">
-               <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
-               {dict.appTitle}
-            </h1>
-            <button onClick={() => setIsSidebarOpen(false)} className="p-2 -mr-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
-               <Menu size={20} />
-            </button>
+          <h1 className="text-lg font-bold flex items-center gap-2">
+            <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
+            {dict.appTitle}
+          </h1>
+          <button onClick={() => setIsSidebarOpen(false)} className="p-2 -mr-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+            <Menu size={20} />
+          </button>
         </div>
 
         <div className="px-4 mb-4 mt-2 md:mt-0">
@@ -728,33 +728,31 @@ function App() {
               ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''}
               ${theme === 'journal' ? 'bg-[#80c63c] hover:bg-[#6fae32] text-white shadow-[#80c63c]/30' :
                 theme === 'binder' ? 'bg-slate-200 hover:bg-white text-slate-800 shadow-black/20' :
-                theme === 'glass' ? 'bg-blue-400/60 hover:bg-blue-400/80 text-white shadow-blue-400/30 backdrop-blur-md' :
-                'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
+                  theme === 'glass' ? 'bg-blue-400/60 hover:bg-blue-400/80 text-white shadow-blue-400/30 backdrop-blur-md' :
+                    'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
           >
             <Plus size={18} /> {dict.newPrompt}
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar pb-6">
-          
+
           {/* Global Prompts Item */}
           <button
             onClick={() => setCurrentView('global')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-2 ${
-              activeView === 'global' ? styles.activeItem : styles.hoverItem
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-2 ${activeView === 'global' ? styles.activeItem : styles.hoverItem
+              }`}
           >
             <Globe size={16} className="text-pink-500" />
             {dict.globalPrompts}
           </button>
-          
+
           {/* GP Collection Item */}
           <button
             onClick={() => setCurrentView('collection')}
             disabled={!currentUser}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-4 ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
-              activeView === 'collection' ? styles.activeItem : styles.hoverItem
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-4 ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${activeView === 'collection' ? styles.activeItem : styles.hoverItem
+              }`}
           >
             <Bookmark size={16} className="text-yellow-500" />
             GP Collection
@@ -769,9 +767,8 @@ function App() {
               setSelectedCategoryId(null);
             }}
             disabled={!currentUser}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
-              activeView === 'local' && selectedCategoryId === null ? styles.activeItem : styles.hoverItem
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${activeView === 'local' && selectedCategoryId === null ? styles.activeItem : styles.hoverItem
+              }`}
           >
             <LayoutGrid size={16} />
             <div className="flex-1">
@@ -783,7 +780,7 @@ function App() {
 
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <span className={`text-xs font-semibold uppercase tracking-wider opacity-50 ${!currentUser ? 'opacity-30' : ''}`}>{dict.categories}</span>
-            <button 
+            <button
               id="btn-category-settings"
               onClick={() => setIsCategoryManagerOpen(true)}
               disabled={!currentUser}
@@ -793,7 +790,7 @@ function App() {
               <Settings size={12} className="opacity-50" />
             </button>
           </div>
-          
+
           {categories.map(cat => {
             const IconComp = getIconComponent(cat.icon);
             return (
@@ -804,9 +801,8 @@ function App() {
                   setSelectedCategoryId(cat.id);
                 }}
                 disabled={!currentUser}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
-                  activeView === 'local' && selectedCategoryId === cat.id ? styles.activeItem : styles.hoverItem
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${activeView === 'local' && selectedCategoryId === cat.id ? styles.activeItem : styles.hoverItem
+                  }`}
               >
                 <div className={`p-1 rounded-md text-white ${cat.color} shrink-0`}>
                   <IconComp size={12} />
@@ -821,13 +817,12 @@ function App() {
 
           <button
             onClick={() => {
-               setCurrentView('local');
-               setSelectedCategoryId('uncategorized');
+              setCurrentView('local');
+              setSelectedCategoryId('uncategorized');
             }}
             disabled={!currentUser}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${
-              activeView === 'local' && selectedCategoryId === 'uncategorized' ? styles.activeItem : styles.hoverItem
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''} ${activeView === 'local' && selectedCategoryId === 'uncategorized' ? styles.activeItem : styles.hoverItem
+              }`}
           >
             <Tag size={16} />
             {dict.uncategorized}
@@ -838,7 +833,7 @@ function App() {
 
           {/* User / Settings Section */}
           <div className={`mt-6 pt-4 border-t ${theme === 'dark' ? 'border-slate-800' : theme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
-            
+
             {/* User Profile */}
             <div className="mb-3 px-2">
               {currentUser ? (
@@ -881,15 +876,15 @@ function App() {
                   )}
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={handleLogin}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-800 transition-all shadow-sm font-medium text-sm group"
                 >
                   <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                   Continue with Google
                 </button>
@@ -899,15 +894,15 @@ function App() {
             <div className="flex flex-col gap-1">
               {/* Language Selector */}
               <div>
-                <button 
+                <button
                   onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isLangMenuOpen ? 'bg-black/5 dark:bg-white/5' : ''}`}
                 >
-                   <div className="flex items-center gap-3">
-                     <Globe size={16} /> 
-                     <span>{languages.find(l => l.code === language)?.label}</span>
-                   </div>
-                   <ChevronsUpDown size={14} className={`opacity-50 transition-transform ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+                  <div className="flex items-center gap-3">
+                    <Globe size={16} />
+                    <span>{languages.find(l => l.code === language)?.label}</span>
+                  </div>
+                  <ChevronsUpDown size={14} className={`opacity-50 transition-transform ${isLangMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isLangMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
@@ -919,11 +914,10 @@ function App() {
                           setLanguage(lang.code);
                           setIsLangMenuOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-                          language === lang.code
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${language === lang.code
                             ? 'text-blue-500 bg-blue-500/10'
                             : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
-                        }`}
+                          }`}
                       >
                         {lang.label}
                         {language === lang.code && <Check size={14} />}
@@ -935,19 +929,19 @@ function App() {
 
               {/* Theme Selector */}
               <div>
-                <button 
+                <button
                   onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isThemeMenuOpen ? 'bg-black/5 dark:bg-white/5' : ''}`}
                 >
-                   <div className="flex items-center gap-3">
-                     <PaletteIcon size={16} /> 
-                     <span>{themes.find(t => t.id === theme)?.label}</span>
-                   </div>
-                   <ChevronsUpDown size={14} className={`opacity-50 transition-transform ${isThemeMenuOpen ? 'rotate-180' : ''}`} />
+                  <div className="flex items-center gap-3">
+                    <PaletteIcon size={16} />
+                    <span>{themes.find(t => t.id === theme)?.label}</span>
+                  </div>
+                  <ChevronsUpDown size={14} className={`opacity-50 transition-transform ${isThemeMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isThemeMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
-                   <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1">
+                  <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1">
                     {themes.map(t => {
                       let requiredCount = 0;
                       if (t.id === 'binder') requiredCount = 2;
@@ -957,38 +951,38 @@ function App() {
                       else if (t.id === 'greenble') requiredCount = 8;
 
                       const isLocked = requiredCount > 0 && currentUserPromptCount < requiredCount;
-                      
+
                       return (
-                      <button
-                        key={t.id}
-                        onClick={() => {
-                          if (isLocked) {
-                            setUnlockModal({
-                              isOpen: true,
-                              themeName: t.label,
-                              required: requiredCount
-                            });
-                          } else {
-                            setTheme(t.id);
-                            setIsThemeMenuOpen(false);
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-                          theme === t.id
-                            ? 'text-blue-500 bg-blue-500/10'
-                            : isLocked 
-                               ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
-                               : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
-                        }`}
-                        title={isLocked ? `Share ${requiredCount} prompts to unlock` : ''}
-                      >
-                        <div className="flex items-center gap-2">
-                           {t.label}
-                           {isLocked && <Lock size={12} />}
-                        </div>
-                        {theme === t.id && <Check size={14} />}
-                      </button>
-                    )})}
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            if (isLocked) {
+                              setUnlockModal({
+                                isOpen: true,
+                                themeName: t.label,
+                                required: requiredCount
+                              });
+                            } else {
+                              setTheme(t.id);
+                              setIsThemeMenuOpen(false);
+                            }
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${theme === t.id
+                              ? 'text-blue-500 bg-blue-500/10'
+                              : isLocked
+                                ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
+                                : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                            }`}
+                          title={isLocked ? `Share ${requiredCount} prompts to unlock` : ''}
+                        >
+                          <div className="flex items-center gap-2">
+                            {t.label}
+                            {isLocked && <Lock size={12} />}
+                          </div>
+                          {theme === t.id && <Check size={14} />}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -996,35 +990,35 @@ function App() {
             </div>
           </div>
 
-          
+
         </nav>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
-      <main 
-        className="flex-1 flex flex-col overflow-hidden relative"
-        style={activeView === 'local' ? styles.mainAreaStyle : undefined}
-      >
-        
-        {/* Render View based on State */}
-        {currentView === 'terms' || currentView === 'privacy' ? (
-           <LegalView 
-              type={currentView} 
+        <main
+          className="flex-1 flex flex-col overflow-hidden relative"
+          style={activeView === 'local' ? styles.mainAreaStyle : undefined}
+        >
+
+          {/* Render View based on State */}
+          {currentView === 'terms' || currentView === 'privacy' ? (
+            <LegalView
+              type={currentView}
               language={language}
               theme={theme}
               onBack={() => setCurrentView('global')}
               dict={dict}
-           />
-        ) : currentView === 'upgrade' ? (
-          <UpgradeGuideView
-            language={language}
-            theme={theme}
-            dict={dict}
-            onBack={() => setCurrentView('global')}
-          />
-        ) : activeView === 'global' || activeView === 'collection' ? (
-           <GlobalView
+            />
+          ) : currentView === 'upgrade' ? (
+            <UpgradeGuideView
+              language={language}
+              theme={theme}
+              dict={dict}
+              onBack={() => setCurrentView('global')}
+            />
+          ) : activeView === 'global' || activeView === 'collection' ? (
+            <GlobalView
               key={refreshGlobal}
               user={currentUser}
               dict={dict}
@@ -1038,10 +1032,10 @@ function App() {
               onEditGlobalPrompt={handleEditGlobalPrompt}
               onDeleteGlobalPrompt={handleDeleteGlobalPrompt}
               highlightPromptId={highlightPromptId}
-           />
-        ) : (
-           /* LOCAL VIEW */
-           <>
+            />
+          ) : (
+            /* LOCAL VIEW */
+            <>
               {/* Top Bar */}
               <header className={`h-16 flex items-center px-8 border-b backdrop-blur-sm z-10 sticky top-0 ${styles.header}`}>
                 <div className={`relative flex-1 max-w-md`}>
@@ -1119,9 +1113,8 @@ function App() {
                         {prompt.modelTags && prompt.modelTags.length > 0 && (
                           <div className="flex gap-1.5 mb-3 overflow-hidden flex-wrap">
                             {prompt.modelTags.map(tag => (
-                              <span key={tag} className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                                isDark ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-100'
-                              }`}>
+                              <span key={tag} className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${isDark ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' : 'bg-blue-50 text-blue-600 border-blue-100'
+                                }`}>
                                 {tag}
                               </span>
                             ))}
@@ -1134,9 +1127,8 @@ function App() {
                             if (!cat) return null;
                             const IconComp = getIconComponent(cat.icon);
                             return (
-                              <span key={catId} className={`inline-flex items-center gap-1.5 px-2 rounded-md text-[10px] font-medium border ${
-                                isDark ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'
-                              }`}>
+                              <span key={catId} className={`inline-flex items-center gap-1.5 px-2 rounded-md text-[10px] font-medium border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'
+                                }`}>
                                 <IconComp size={10} className={cat.color.replace('bg-', 'text-')} />
                                 {cat.name}
                               </span>
@@ -1147,14 +1139,14 @@ function App() {
                         {/* Positive Prompt */}
                         <div className={`mt-auto relative rounded-lg border group/code transition-colors ${styles.positiveBox}`}>
                           <div className="flex items-center justify-between px-3 py-1.5 border-b border-inherit">
-                             <span className="text-[10px] font-bold uppercase tracking-wider opacity-50">{dict.positivePrompt}</span>
-                             <button 
-                                onClick={() => handleCopy(prompt.positive, `${prompt.id}-pos`)}
-                                className={`p-1 rounded transition-colors ${styles.hoverItem}`}
-                                title={dict.copy}
-                              >
-                                {copiedId === `${prompt.id}-pos` ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
-                              </button>
+                            <span className="text-[10px] font-bold uppercase tracking-wider opacity-50">{dict.positivePrompt}</span>
+                            <button
+                              onClick={() => handleCopy(prompt.positive, `${prompt.id}-pos`)}
+                              className={`p-1 rounded transition-colors ${styles.hoverItem}`}
+                              title={dict.copy}
+                            >
+                              {copiedId === `${prompt.id}-pos` ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                            </button>
                           </div>
                           <div className="p-3 text-xs font-mono break-words line-clamp-3">
                             {prompt.positive}
@@ -1163,18 +1155,17 @@ function App() {
 
                         {/* Negative Prompt */}
                         {prompt.negative && (
-                          <div className={`mt-2 relative rounded-lg border group/code transition-colors ${
-                            isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50/50 border-red-100'
-                          }`}>
+                          <div className={`mt-2 relative rounded-lg border group/code transition-colors ${isDark ? 'bg-red-500/5 border-red-500/10' : 'bg-red-50/50 border-red-100'
+                            }`}>
                             <div className="flex items-center justify-between px-3 py-1.5 border-b border-inherit">
-                               <span className="text-[10px] font-bold uppercase tracking-wider opacity-50 text-red-500/70">{dict.negativePrompt}</span>
-                               <button 
-                                  onClick={() => handleCopy(prompt.negative!, `${prompt.id}-neg`)}
-                                  className="p-1 hover:bg-red-500/10 rounded transition-colors"
-                                  title={dict.copy}
-                                >
-                                  {copiedId === `${prompt.id}-neg` ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-red-500/70" />}
-                                </button>
+                              <span className="text-[10px] font-bold uppercase tracking-wider opacity-50 text-red-500/70">{dict.negativePrompt}</span>
+                              <button
+                                onClick={() => handleCopy(prompt.negative!, `${prompt.id}-neg`)}
+                                className="p-1 hover:bg-red-500/10 rounded transition-colors"
+                                title={dict.copy}
+                              >
+                                {copiedId === `${prompt.id}-neg` ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-red-500/70" />}
+                              </button>
                             </div>
                             <div className="p-3 text-xs font-mono break-words line-clamp-2 opacity-80">
                               {prompt.negative}
@@ -1183,16 +1174,14 @@ function App() {
                         )}
 
                         {/* Footer: Actions & Creation Time */}
-                        <div className={`mt-3 pt-2 border-t flex justify-between items-center ${
-                          isDark ? 'border-white/5' : 'border-black/5'
-                        }`}>
+                        <div className={`mt-3 pt-2 border-t flex justify-between items-center ${isDark ? 'border-white/5' : 'border-black/5'
+                          }`}>
                           <div className="flex items-center gap-1">
                             {/* Note Icon with Tooltip */}
                             {prompt.note && (
                               <div className="relative group/note">
-                                <div className={`absolute bottom-full left-0 mb-2 w-48 p-2 rounded-lg text-xs shadow-xl z-20 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity ${
-                                  isDark ? 'bg-slate-800 text-slate-200 border border-slate-700' : 'bg-white text-slate-600 border border-slate-200'
-                                }`}>
+                                <div className={`absolute bottom-full left-0 mb-2 w-48 p-2 rounded-lg text-xs shadow-xl z-20 pointer-events-none opacity-0 group-hover/note:opacity-100 transition-opacity ${isDark ? 'bg-slate-800 text-slate-200 border border-slate-700' : 'bg-white text-slate-600 border border-slate-200'
+                                  }`}>
                                   {prompt.note}
                                 </div>
                                 <button
@@ -1229,15 +1218,15 @@ function App() {
 
                             {/* Share Button */}
                             <button
-                               id={index === 0 ? "btn-share-prompt-0" : undefined}
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 handleOpenShare(prompt);
-                               }}
-                               className={`p-1.5 rounded-md transition-colors opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 ${theme === 'journal' ? 'text-[#0c9e2d]' : 'text-blue-500'}`}
-                               title={dict.share}
+                              id={index === 0 ? "btn-share-prompt-0" : undefined}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenShare(prompt);
+                              }}
+                              className={`p-1.5 rounded-md transition-colors opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 ${theme === 'journal' ? 'text-[#0c9e2d]' : 'text-blue-500'}`}
+                              title={dict.share}
                             >
-                               <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M340-320h300q50 0 85-35t35-85q0-50-35-85t-85-35q-8-58-53-99t-101-41q-51 0-92.5 26T332-600q-57 5-94.5 43.5T200-460q0 58 41 99t99 41Zm0-80q-25 0-42.5-17.5T280-460q0-25 17.5-42.5T340-520h60v-20q0-33 23.5-56.5T480-620q33 0 56.5 23.5T560-540v60h80q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400H340ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M340-320h300q50 0 85-35t35-85q0-50-35-85t-85-35q-8-58-53-99t-101-41q-51 0-92.5 26T332-600q-57 5-94.5 43.5T200-460q0 58 41 99t99 41Zm0-80q-25 0-42.5-17.5T280-460q0-25 17.5-42.5T340-520h60v-20q0-33 23.5-56.5T480-620q33 0 56.5 23.5T560-540v60h80q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400H340ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" /></svg>
                             </button>
                           </div>
 
@@ -1253,25 +1242,25 @@ function App() {
                   </div>
                 )}
               </div>
-           </>
-        )}
-      </main>
-      <Footer
-        theme={theme}
-        dict={dict}
-        onOpenUpgradeGuide={() => {
-          setCurrentView('upgrade');
-          if (window.innerWidth < 768) setIsSidebarOpen(false);
-        }}
-        onOpenTerms={() => {
-          setCurrentView('terms');
-          if (window.innerWidth < 768) setIsSidebarOpen(false);
-        }}
-        onOpenPrivacy={() => {
-          setCurrentView('privacy');
-          if (window.innerWidth < 768) setIsSidebarOpen(false);
-        }}
-      />
+            </>
+          )}
+        </main>
+        <Footer
+          theme={theme}
+          dict={dict}
+          onOpenUpgradeGuide={() => {
+            setCurrentView('upgrade');
+            if (window.innerWidth < 768) setIsSidebarOpen(false);
+          }}
+          onOpenTerms={() => {
+            setCurrentView('terms');
+            if (window.innerWidth < 768) setIsSidebarOpen(false);
+          }}
+          onOpenPrivacy={() => {
+            setCurrentView('privacy');
+            if (window.innerWidth < 768) setIsSidebarOpen(false);
+          }}
+        />
       </div>
 
       {/* Modals */}
@@ -1324,20 +1313,20 @@ function App() {
 
       {sharingPrompt && (
         <ShareModal
-           isOpen={isShareModalOpen}
-           onClose={() => {
-             setIsShareModalOpen(false);
-             setIsEditingGlobalPrompt(false);
-             setEditingGlobalPromptId(null);
-           }}
-           onSuccess={handlePublishSuccess}
-           prompt={sharingPrompt}
-           user={currentUser}
-           dict={dict}
-           theme={theme}
-           language={language}
-           isEditingGlobalPrompt={isEditingGlobalPrompt}
-           globalPromptId={editingGlobalPromptId || undefined}
+          isOpen={isShareModalOpen}
+          onClose={() => {
+            setIsShareModalOpen(false);
+            setIsEditingGlobalPrompt(false);
+            setEditingGlobalPromptId(null);
+          }}
+          onSuccess={handlePublishSuccess}
+          prompt={sharingPrompt}
+          user={currentUser}
+          dict={dict}
+          theme={theme}
+          language={language}
+          isEditingGlobalPrompt={isEditingGlobalPrompt}
+          globalPromptId={editingGlobalPromptId || undefined}
         />
       )}
 
@@ -1363,14 +1352,14 @@ function App() {
 
       {/* Onboarding Tour */}
       <OnboardingTour
-         steps={tourSteps}
-         isOpen={isTourOpen}
-         onClose={handleTourComplete} 
-         onComplete={handleTourComplete}
-         dict={dict}
-         theme={theme}
-         language={language}
-         onStepChange={handleTourStepChange}
+        steps={tourSteps}
+        isOpen={isTourOpen}
+        onClose={handleTourComplete}
+        onComplete={handleTourComplete}
+        dict={dict}
+        theme={theme}
+        language={language}
+        onStepChange={handleTourStepChange}
       />
 
       {/* Unlock Theme Modal */}
