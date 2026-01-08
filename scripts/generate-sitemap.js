@@ -69,7 +69,10 @@ const generateSitemap = async () => {
     xml += `    <loc>${loc}</loc>\n`;
     if (lastmod) {
       try {
-        xml += `    <lastmod>${new Date(lastmod).toISOString()}</lastmod>\n`;
+        const date = new Date(lastmod);
+        // Use YYYY-MM-DD format which is safest for Google
+        const dateStr = date.toISOString().split('T')[0];
+        xml += `    <lastmod>${dateStr}</lastmod>\n`;
       } catch (e) {
         // Ignore invalid dates
       }
@@ -91,13 +94,13 @@ const generateSitemap = async () => {
 
     // Home Page
     const homeUrl = isDefault ? baseUrl : `${baseUrl}/${langParam}`;
-    addUrl(homeUrl, new Date().toISOString(), 'daily', 1.0);
+    addUrl(homeUrl, new Date().toISOString().split('T')[0], 'daily', 1.0);
 
     // Global View Page
     // This one has ?view=global AND potentially &lang=...
     // So `?view=global` is fine, but if we append lang, it must be `&amp;lang=`
     const globalUrl = `${baseUrl}/?view=global${langParamAppend}`;
-    addUrl(globalUrl, new Date().toISOString(), 'daily', 0.9);
+    addUrl(globalUrl, new Date().toISOString().split('T')[0], 'daily', 0.9);
   });
 
   // 2. Dynamic Prompts with Language Variants
