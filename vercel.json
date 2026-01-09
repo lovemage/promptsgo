@@ -1,4 +1,17 @@
 {
+    "redirects": [
+        {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "www.promptsgo.cc"
+                }
+            ],
+            "destination": "https://promptsgo.cc/:path*",
+            "permanent": true
+        }
+    ],
     "headers": [
         {
             "source": "/sitemap.xml",
