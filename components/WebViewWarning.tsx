@@ -11,7 +11,7 @@ interface WebViewWarningProps {
 
 const WebViewWarning: React.FC<WebViewWarningProps> = ({ dict, theme, webViewType, onClose }) => {
   const [copied, setCopied] = useState(false);
-  const websiteUrl = 'https://www.promptsgo.cc/';
+  const websiteUrl = 'https://promptsgo.cc/';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(websiteUrl);
@@ -84,7 +84,7 @@ const WebViewWarning: React.FC<WebViewWarningProps> = ({ dict, theme, webViewTyp
 
         {/* Message */}
         <p className="text-center mb-4 opacity-80">
-          {webViewType 
+          {webViewType
             ? dict.webViewWarningMessage.replace('{app}', webViewType)
             : dict.webViewWarningMessageGeneric
           }

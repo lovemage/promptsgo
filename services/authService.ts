@@ -72,37 +72,37 @@ const ensureUserProfile = async (user: User) => {
       });
     }
   }
-  
+
   // done
 };
 
 const updateCurrentUser = async (session: any) => {
-    const newUser = session?.user ? mapSupabaseUser(session.user) : null;
-    // Simple check to avoid unnecessary updates/loops if object identity changes but content is same
-    // But for now, just updating is fine.
-    if (JSON.stringify(newUser) !== JSON.stringify(currentUser)) {
-        currentUser = newUser;
-        notifyListeners();
-        
-        if (currentUser) {
-            await ensureUserProfile(currentUser);
-        }
+  const newUser = session?.user ? mapSupabaseUser(session.user) : null;
+  // Simple check to avoid unnecessary updates/loops if object identity changes but content is same
+  // But for now, just updating is fine.
+  if (JSON.stringify(newUser) !== JSON.stringify(currentUser)) {
+    currentUser = newUser;
+    notifyListeners();
+
+    if (currentUser) {
+      await ensureUserProfile(currentUser);
     }
+  }
 };
 
 // Initialize Supabase listener once
 if (supabase && !initialized) {
-    initialized = true;
-    
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        updateCurrentUser(session);
-    });
+  initialized = true;
 
-    // Subscribe to changes
-    supabase.auth.onAuthStateChange((_event, session) => {
-        updateCurrentUser(session);
-    });
+  // Check initial session
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    updateCurrentUser(session);
+  });
+
+  // Subscribe to changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    updateCurrentUser(session);
+  });
 }
 
 export const signInWithGoogle = async (): Promise<void> => {
@@ -110,20 +110,15 @@ export const signInWithGoogle = async (): Promise<void> => {
     alert("Supabase not configured! Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local");
     return;
   }
-  
+
   const redirectUrl = window.location.origin;
   console.log("Initiating Google Login with redirect to:", redirectUrl);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    /* 
-       NOTE: We rely on Supabase "Site URL" configuration by default.
-       If you want to support Vercel Preview URLs, add them to Supabase "Redirect URLs"
-       and uncomment the options block below.
-    */
-    // options: {
-    //   redirectTo: redirectUrl
-    // }
+    options: {
+      redirectTo: redirectUrl
+    }
   });
   if (error) {
     console.error("Login failed", error);
@@ -156,7 +151,7 @@ export const onAuthStateChanged = (callback: AuthListener) => {
   listeners.push(callback);
   // Send current state immediately
   callback(currentUser);
-  
+
   return () => {
     listeners = listeners.filter(l => l !== callback);
   };
