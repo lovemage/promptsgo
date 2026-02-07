@@ -10,6 +10,16 @@
             ],
             "destination": "https://promptsgo.cc/:path*",
             "permanent": true
+        },
+        {
+            "source": "/public/sitemap.xml",
+            "destination": "/sitemap.xml",
+            "permanent": true
+        },
+        {
+            "source": "/public/robots.txt",
+            "destination": "/robots.txt",
+            "permanent": true
         }
     ],
     "headers": [
