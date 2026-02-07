@@ -21,9 +21,11 @@ interface GlobalViewProps {
    onEditGlobalPrompt?: (prompt: GlobalPrompt) => void;
    onDeleteGlobalPrompt?: (id: string) => void;
    highlightPromptId?: string | null;
+   onOpenPrompt?: (id: string) => void;
+   onClosePrompt?: () => void;
 }
 
-const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt, highlightPromptId }) => {
+const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, viewMode = 'all', collectedIds = [], onToggleCollect, onShareGlobalPrompt, onRefreshLocal, onEditGlobalPrompt, onDeleteGlobalPrompt, highlightPromptId, onOpenPrompt, onClosePrompt }) => {
    const [prompts, setPrompts] = useState<GlobalPrompt[]>([]);
    const [activeTag, setActiveTag] = useState('All');
    const [activeModel, setActiveModel] = useState('All');
@@ -114,7 +116,15 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                {selectedPrompt.image && <meta property="og:image" content={selectedPrompt.image} />}
                {selectedPrompt.image && <meta name="twitter:image" content={selectedPrompt.image} />}
                <meta name="twitter:card" content="summary_large_image" />
-               <link rel="canonical" href={`https://promptsgo.cc/?promptId=${selectedPrompt.id}`} />
+               <link
+                  rel="canonical"
+                  href={(() => {
+                     const params = new URLSearchParams(window.location.search);
+                     const langParam = params.get('lang');
+                     const qs = langParam ? `?lang=${encodeURIComponent(langParam)}` : '';
+                     return `https://promptsgo.cc/prompt/${selectedPrompt.id}${qs}`;
+                  })()}
+               />
 
                {/* Schema.org Structured Data */}
                <script type="application/ld+json">
@@ -244,7 +254,10 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                         onRefreshLocal={onRefreshLocal}
                         onEdit={onEditGlobalPrompt}
                         onDelete={onDeleteGlobalPrompt}
-                        onOpenDetail={setSelectedPrompt}
+                        onOpenDetail={(p) => {
+                           setSelectedPrompt(p);
+                           onOpenPrompt?.(p.id);
+                        }}
                      />
                   ))}
                </div>
@@ -255,14 +268,20 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
          {selectedPrompt && (
             <div
                className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-               onClick={() => setSelectedPrompt(null)}
+               onClick={() => {
+                  setSelectedPrompt(null);
+                  onClosePrompt?.();
+               }}
             >
                <div
                   className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 custom-scrollbar"
                   onClick={e => e.stopPropagation()}
                >
                   <button
-                     onClick={() => setSelectedPrompt(null)}
+                     onClick={() => {
+                        setSelectedPrompt(null);
+                        onClosePrompt?.();
+                     }}
                      className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
                   >
                      <X size={20} />
@@ -282,10 +301,12 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                      onEdit={(p) => {
                         onEditGlobalPrompt?.(p);
                         setSelectedPrompt(null);
+                        onClosePrompt?.();
                      }}
                      onDelete={(id) => {
                         onDeleteGlobalPrompt?.(id);
                         setSelectedPrompt(null);
+                        onClosePrompt?.();
                      }}
                      isDetailView={true}
                   />

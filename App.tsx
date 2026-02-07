@@ -32,6 +32,7 @@ import NicknameModal from './components/NicknameModal';
 import { isWebView, getWebViewType } from './utils/webviewDetector';
 import { DEFAULT_AVATAR_URL, getEffectiveBadgeLevel, getEffectiveUserAvatar, getStoredUserAvatar, setStoredUserAvatar } from './utils/avatarUtils';
 import * as nicknameService from './services/nicknameService';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Icon mapping helper
 const getIconComponent = (iconName: string) => {
@@ -60,6 +61,9 @@ const PromptsGoLogo = ({ className }: { className?: string }) => (
 );
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -111,22 +115,60 @@ function App() {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [nicknameProfile, setNicknameProfile] = useState<nicknameService.NicknameProfile | null>(null);
 
-  // Deep Linking & Auth Listener
+  // URL Routing (Path-based) + Backward Compatible Query Handling
   useEffect(() => {
-    // Check URL params
-    const params = new URLSearchParams(window.location.search);
-    const promptId = params.get('promptId');
-    if (promptId) {
-      setCurrentView('global');
-      setHighlightPromptId(promptId);
-    }
+    const params = new URLSearchParams(location.search);
 
-    // Check lang param
+    // Language via query string (kept for now)
     const langParam = params.get('lang');
     if (langParam && ['en', 'zh-TW', 'ja', 'ko'].includes(langParam)) {
       setLanguage(langParam as LanguageCode);
     }
 
+    // Legacy deep link: ?promptId=...
+    const legacyPromptId = params.get('promptId');
+    if (legacyPromptId) {
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('promptId');
+      const qs = newParams.toString();
+      navigate(`/prompt/${legacyPromptId}${qs ? `?${qs}` : ''}`, { replace: true });
+      return;
+    }
+
+    // Legacy: ?view=global
+    const legacyView = params.get('view');
+    if (legacyView === 'global') {
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('view');
+      const qs = newParams.toString();
+      navigate(`/global${qs ? `?${qs}` : ''}`, { replace: true });
+      return;
+    }
+
+    // Root -> /global (keep query string)
+    if (location.pathname === '/') {
+      navigate(`/global${location.search || ''}`, { replace: true });
+      return;
+    }
+
+    // /global
+    if (location.pathname === '/global') {
+      setCurrentView('global');
+      setHighlightPromptId(null);
+      return;
+    }
+
+    // /prompt/:id
+    const promptMatch = location.pathname.match(/^\/prompt\/([^/]+)$/);
+    if (promptMatch) {
+      setCurrentView('global');
+      setHighlightPromptId(promptMatch[1]);
+      return;
+    }
+  }, [location.pathname, location.search, navigate]);
+
+  // Deep Linking & Auth Listener
+  useEffect(() => {
     // Check if running in WebView
     if (isWebView()) {
       const type = getWebViewType();
@@ -659,6 +701,20 @@ function App() {
   const effectiveUserAvatar = getEffectiveUserAvatar(currentUser);
   const allowCustomAvatarUpload = currentUserLevel > 5;
 
+  const handleOpenPromptRoute = useCallback((id: string) => {
+    const params = new URLSearchParams(location.search);
+    const langParam = params.get('lang');
+    const qs = langParam ? `?lang=${encodeURIComponent(langParam)}` : '';
+    navigate(`/prompt/${id}${qs}`, { replace: false });
+  }, [location.search, navigate]);
+
+  const handleClosePromptRoute = useCallback(() => {
+    const params = new URLSearchParams(location.search);
+    const langParam = params.get('lang');
+    const qs = langParam ? `?lang=${encodeURIComponent(langParam)}` : '';
+    navigate(`/global${qs}`, { replace: false });
+  }, [location.search, navigate]);
+
   return (
     <div
       className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${styles.app}`}
@@ -666,15 +722,25 @@ function App() {
         '--logo-bg': styles.logoBg
       } as React.CSSProperties}
     >
-      <Helmet>
-        <title>{dict.appTitle} | Share & Save your prompts Easily</title>
-        <meta name="description" content={dict.shareDescription} />
-        <meta property="og:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
-        <meta property="og:description" content={dict.shareDescription} />
-        <meta property="twitter:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
-        <meta property="twitter:description" content={dict.shareDescription} />
-        <link rel="canonical" href={`https://promptsgo.cc${window.location.search}`} />
-      </Helmet>
+      {(() => {
+        const params = new URLSearchParams(location.search);
+        const langParam = params.get('lang');
+        const langQs = langParam ? `?lang=${encodeURIComponent(langParam)}` : '';
+        const promptMatch = location.pathname.match(/^\/prompt\/([^/]+)$/);
+        const canonicalPath = promptMatch ? `/prompt/${promptMatch[1]}` : (location.pathname === '/' ? '/global' : location.pathname);
+        const canonicalHref = `https://promptsgo.cc${canonicalPath}${langQs}`;
+        return (
+          <Helmet>
+            <title>{dict.appTitle} | Share & Save your prompts Easily</title>
+            <meta name="description" content={dict.shareDescription} />
+            <meta property="og:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
+            <meta property="og:description" content={dict.shareDescription} />
+            <meta property="twitter:title" content={`${dict.appTitle} | Share & Save your prompts Easily`} />
+            <meta property="twitter:description" content={dict.shareDescription} />
+            <link rel="canonical" href={canonicalHref} />
+          </Helmet>
+        );
+      })()}
 
       {/* Mobile Header */}
       <div className={`md:hidden flex items-center justify-between p-4 border-b backdrop-blur-md z-40 sticky top-0 ${styles.header}`}>
@@ -1032,6 +1098,8 @@ function App() {
               onEditGlobalPrompt={handleEditGlobalPrompt}
               onDeleteGlobalPrompt={handleDeleteGlobalPrompt}
               highlightPromptId={highlightPromptId}
+              onOpenPrompt={handleOpenPromptRoute}
+              onClosePrompt={handleClosePromptRoute}
             />
           ) : (
             /* LOCAL VIEW */

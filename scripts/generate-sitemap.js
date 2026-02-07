@@ -93,13 +93,11 @@ const generateSitemap = async () => {
     const langParamAppend = isDefault ? '' : `&amp;lang=${lang}`; // For URLs that already have params
 
     // Home Page
-    const homeUrl = isDefault ? baseUrl : `${baseUrl}/${langParam}`;
+    const homeUrl = isDefault ? baseUrl : `${baseUrl}/?lang=${lang}`;
     addUrl(homeUrl, new Date().toISOString().split('T')[0], 'daily', 1.0);
 
     // Global View Page
-    // This one has ?view=global AND potentially &lang=...
-    // So `?view=global` is fine, but if we append lang, it must be `&amp;lang=`
-    const globalUrl = `${baseUrl}/?view=global${langParamAppend}`;
+    const globalUrl = `${baseUrl}/global${isDefault ? '' : `?lang=${lang}`}`;
     addUrl(globalUrl, new Date().toISOString().split('T')[0], 'daily', 0.9);
   });
 
@@ -118,11 +116,7 @@ const generateSitemap = async () => {
       // But simpler is to build string then escape. However, standard URL encoding isn't XML escaping.
       // XML needs & -> &amp;
 
-      const langParamAppend = isDefault ? '' : `&amp;lang=${lang}`;
-      // Note: baseUrl might have query params already? No, usually siteroot.
-      // But line 110 uses ?promptId=...
-
-      const url = `${baseUrl}/?promptId=${prompt.id}${langParamAppend}`;
+      const url = `${baseUrl}/prompt/${prompt.id}${isDefault ? '' : `?lang=${lang}`}`;
       addUrl(url, lastmod, 'weekly', 0.8);
     });
   });
