@@ -1071,6 +1071,24 @@ function App() {
                 </div>
               </div>
 
+              <a
+                href="https://oceanads.org/"
+                target="_blank"
+                rel="noreferrer"
+                className="px-2 pt-2 pb-1"
+              >
+                <div className="relative rounded-xl overflow-hidden">
+                  <div className="absolute inset-0 bg-black/10 opacity-90 pointer-events-none" />
+                  <div className="absolute top-2 left-2 text-[11px] text-white/90">Design by</div>
+                  <img
+                    src="/oceanads-studio.jpg"
+                    alt="Oceanads.org Studio"
+                    className="w-full rounded-xl"
+                    loading="lazy"
+                  />
+                </div>
+              </a>
+
             </div>
           </div>
 

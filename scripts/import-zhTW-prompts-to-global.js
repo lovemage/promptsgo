@@ -92,19 +92,38 @@ function parseMarkdownPrompts(content) {
   return prompts;
 }
 
-async function fetchExistingKeys() {
+function normalizeText(value) {
+  return (value || '').trim();
+}
+
+function buildPromptKey(title, sourceUrl) {
+  return `${normalizeText(title)}||${normalizeText(sourceUrl)}`;
+}
+
+function extractTitlePrefixTag(title) {
+  const normalizedTitle = normalizeText(title);
+  if (!normalizedTitle) return null;
+
+  const parts = normalizedTitle.split(/\s*-\s*/);
+  if (parts.length < 2) return null;
+
+  const prefix = normalizeText(parts[0]);
+  return prefix || null;
+}
+
+async function fetchExistingPromptMap() {
   if (!supabase) {
     throw new Error('Supabase client not initialized.');
   }
   const pageSize = 1000;
   let from = 0;
-  const keys = new Set();
+  const promptMap = new Map();
 
   while (true) {
     const to = from + pageSize - 1;
     const { data, error } = await supabase
       .from('global_prompts')
-      .select('title,source_url')
+      .select('id,title,source_url,tags')
       .range(from, to);
 
     if (error) {
@@ -114,20 +133,24 @@ async function fetchExistingKeys() {
     if (!data || data.length === 0) break;
 
     for (const row of data) {
-      const key = `${(row.title || '').trim()}||${(row.source_url || '').trim()}`;
-      keys.add(key);
+      const key = buildPromptKey(row.title, row.source_url);
+      if (!promptMap.has(key)) {
+        promptMap.set(key, row);
+      }
     }
 
     if (data.length < pageSize) break;
     from += pageSize;
   }
 
-  return keys;
+  return promptMap;
 }
 
 function toDbRow(prompt) {
   const noteParts = [];
   if (prompt.authorLink) noteParts.push(`author_link: ${prompt.authorLink}`);
+  const prefixTag = extractTitlePrefixTag(prompt.title);
+  const tags = prefixTag ? [prefixTag] : [];
 
   return {
     id: crypto.randomUUID(),
@@ -139,7 +162,7 @@ function toDbRow(prompt) {
     author_id: null,
     author_name: prompt.authorName,
     author_avatar: null,
-    tags: [],
+    tags,
     model_tags: ['nano-banana-pro'],
     image: prompt.image,
     component_images: [],
@@ -175,6 +198,36 @@ async function insertInBatches(rows) {
   return inserted;
 }
 
+async function updateInBatches(rows) {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized.');
+  }
+  let updated = 0;
+
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    for (const row of batch) {
+      const { error } = await supabase
+        .from('global_prompts')
+        .update({ tags: row.tags })
+        .eq('id', row.id);
+
+      if (error) {
+        if (error.message && error.message.includes('row-level security policy')) {
+          throw new Error(
+            'RLS blocked update on global_prompts. Use SUPABASE_SERVICE_ROLE_KEY in .env for server-side import.'
+          );
+        }
+        throw new Error(`Failed to update prompt ${row.id}: ${error.message}`);
+      }
+      updated += 1;
+    }
+    console.log(`Updated ${updated}/${rows.length}`);
+  }
+
+  return updated;
+}
+
 async function main() {
   if (!fs.existsSync(readmePath)) {
     console.error(`README not found: ${readmePath}`);
@@ -208,30 +261,64 @@ async function main() {
     process.exit(1);
   }
 
-  const existingKeys = await fetchExistingKeys();
+  const existingPromptMap = await fetchExistingPromptMap();
   const toInsert = [];
-  let skipped = 0;
+  const toUpdate = [];
+  let unchanged = 0;
+  const seenInputKeys = new Set();
 
   for (const prompt of parsed) {
-    const dedupeKey = `${prompt.title.trim()}||${(prompt.sourceUrl || '').trim()}`;
-    if (existingKeys.has(dedupeKey)) {
-      skipped += 1;
+    const dedupeKey = buildPromptKey(prompt.title, prompt.sourceUrl);
+    if (seenInputKeys.has(dedupeKey)) {
+      unchanged += 1;
       continue;
     }
+    seenInputKeys.add(dedupeKey);
+
+    const existing = existingPromptMap.get(dedupeKey);
+    const prefixTag = extractTitlePrefixTag(prompt.title);
+    if (existing) {
+      const currentTags = Array.isArray(existing.tags) ? existing.tags.filter(Boolean) : [];
+      const mergedTags = prefixTag
+        ? Array.from(new Set([...currentTags, prefixTag]))
+        : currentTags;
+
+      const sameLength = mergedTags.length === currentTags.length;
+      const sameValues = sameLength && mergedTags.every((tag) => currentTags.includes(tag));
+      if (sameValues) {
+        unchanged += 1;
+      } else {
+        toUpdate.push({ id: existing.id, tags: mergedTags });
+      }
+      continue;
+    }
+
     toInsert.push(toDbRow(prompt));
   }
 
-  if (toInsert.length === 0) {
-    console.log(`No new prompts to insert. Skipped duplicates: ${skipped}`);
+  if (toInsert.length === 0 && toUpdate.length === 0) {
+    console.log(`No changes needed. Unchanged/duplicate inputs: ${unchanged}`);
     return;
   }
 
-  console.log(`Ready to insert: ${toInsert.length}. Skipped duplicates: ${skipped}`);
-  const inserted = await insertInBatches(toInsert);
+  console.log(`Ready to insert: ${toInsert.length}`);
+  console.log(`Ready to update tags: ${toUpdate.length}`);
+  console.log(`Unchanged/duplicate inputs: ${unchanged}`);
+
+  let inserted = 0;
+  let updated = 0;
+
+  if (toInsert.length > 0) {
+    inserted = await insertInBatches(toInsert);
+  }
+  if (toUpdate.length > 0) {
+    updated = await updateInBatches(toUpdate);
+  }
 
   console.log('Import complete.');
   console.log(`Inserted: ${inserted}`);
-  console.log(`Skipped: ${skipped}`);
+  console.log(`Updated tags: ${updated}`);
+  console.log(`Unchanged: ${unchanged}`);
 }
 
 main().catch((error) => {
