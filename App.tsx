@@ -118,6 +118,13 @@ function App() {
   // URL Routing (Path-based) + Backward Compatible Query Handling
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const hash = location.hash || '';
+    const hasOAuthCallbackParams =
+      params.has('code') ||
+      params.has('access_token') ||
+      params.has('refresh_token') ||
+      hash.includes('access_token=') ||
+      hash.includes('refresh_token=');
 
     // Language via query string (kept for now)
     const langParam = params.get('lang');
@@ -131,7 +138,7 @@ function App() {
       const newParams = new URLSearchParams(location.search);
       newParams.delete('promptId');
       const qs = newParams.toString();
-      navigate(`/prompt/${legacyPromptId}${qs ? `?${qs}` : ''}`, { replace: true });
+      navigate(`/prompt/${legacyPromptId}${qs ? `?${qs}` : ''}${hash}`, { replace: true });
       return;
     }
 
@@ -141,13 +148,21 @@ function App() {
       const newParams = new URLSearchParams(location.search);
       newParams.delete('view');
       const qs = newParams.toString();
-      navigate(`/global${qs ? `?${qs}` : ''}`, { replace: true });
+      navigate(`/global${qs ? `?${qs}` : ''}${hash}`, { replace: true });
       return;
     }
 
-    // Root -> /global (keep query string)
+    // OAuth callback path: wait until auth params are consumed before cleaning the URL.
+    if (location.pathname === '/auth/callback') {
+      if (hasOAuthCallbackParams) return;
+      navigate(`/global${location.search || ''}${hash}`, { replace: true });
+      return;
+    }
+
+    // Root -> /global (keep query/hash); skip redirect while OAuth params are still in URL.
     if (location.pathname === '/') {
-      navigate(`/global${location.search || ''}`, { replace: true });
+      if (hasOAuthCallbackParams) return;
+      navigate(`/global${location.search || ''}${hash}`, { replace: true });
       return;
     }
 

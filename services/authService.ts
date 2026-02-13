@@ -111,7 +111,7 @@ export const signInWithGoogle = async (): Promise<void> => {
     return;
   }
 
-  const redirectUrl = window.location.origin;
+  const redirectUrl = `${window.location.origin}/auth/callback`;
   console.log("Initiating Google Login with redirect to:", redirectUrl);
 
   const { error } = await supabase.auth.signInWithOAuth({
