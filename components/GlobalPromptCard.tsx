@@ -36,6 +36,10 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   const [commentMediaPreview, setCommentMediaPreview] = useState<string | null>(null);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [commentMediaModal, setCommentMediaModal] = useState<string | null>(null);
+  const isAdmin = user?.email === 'aistorm0910@gmail.com';
+  const canManagePrompt = !!user && (
+    prompt.authorId === user.id || (prompt.authorId === 'anonymous' && isAdmin)
+  );
   
   // Check if user has already rated/commented (rating > 0)
   const userHasRated = user && prompt.comments.some(c => c.userId === user.id && c.rating > 0);
@@ -496,8 +500,8 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             </span>
 
             <div className="flex gap-1 items-center">
-               {/* Edit button - only for author */}
-               {onEdit && user && (prompt.authorId === user.id || prompt.authorId === 'anonymous') && (
+               {/* Edit button - author, or admin for anonymous/imported prompts */}
+               {onEdit && canManagePrompt && (
                   <button
                      onClick={() => onEdit(prompt)}
                      title="Edit"
@@ -507,8 +511,8 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                   </button>
                )}
 
-               {/* Delete button - only for author */}
-               {onDelete && user && (prompt.authorId === user.id || prompt.authorId === 'anonymous') && (
+               {/* Delete button - author, or admin for anonymous/imported prompts */}
+               {onDelete && canManagePrompt && (
                   <button
                      onClick={() => {
                         if (confirm(`Delete "${prompt.title}"?`)) {

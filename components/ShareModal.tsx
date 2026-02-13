@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Globe, Upload, Image as ImageIcon, Loader2, Plus, Video as VideoIcon, Sparkles } from 'lucide-react';
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
-import { sharePrompt, updatePrompt, getUniqueModelTags } from '../services/globalService';
+import { sharePrompt, updatePrompt, getUniqueModelTags, getUniqueTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
 import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
 import { getEffectiveUserAvatar } from '../utils/avatarUtils';
@@ -31,6 +31,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
   const [modelTags, setModelTags] = useState<string[]>(prompt.modelTags || []);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -45,15 +46,18 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingMeta, setIsGeneratingMeta] = useState(false);
 
-  // Load available models
+  // Load available tags/models
   useEffect(() => {
-    const loadModels = async () => {
+    const loadMetadata = async () => {
+      const dbTags = await getUniqueTags();
+      setAvailableTags(Array.from(new Set(dbTags)).sort((a, b) => a.localeCompare(b)));
+
       // Get model tags from database
       const dbModelTags = await getUniqueModelTags();
       const combinedModels = Array.from(new Set([...dbModelTags])).sort();
       setAvailableModels(combinedModels);
     };
-    loadModels();
+    loadMetadata();
   }, []);
 
   // Reset form when prompt changes or modal opens
@@ -65,7 +69,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
       setPositive(prompt.positive);
       setNegative(prompt.negative || '');
       setNote(prompt.note || '');
-      setTags([]);
+      setTags((prompt as any).tags || []);
       setCurrentTag('');
       setModelTags(prompt.modelTags || []);
       // Check if editing an anonymous prompt
@@ -170,8 +174,15 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
   const handleAddTag = () => {
     const trimmed = currentTag.trim();
-    if (trimmed && !tags.includes(trimmed)) {
+    if (!trimmed) {
+      setCurrentTag('');
+      return;
+    }
+
+    const hasTag = tags.some(t => t.toLowerCase() === trimmed.toLowerCase());
+    if (!hasTag) {
       setTags([...tags, trimmed]);
+      setAvailableTags(prev => Array.from(new Set([...prev, trimmed])).sort((a, b) => a.localeCompare(b)));
     }
     setCurrentTag('');
   };
@@ -185,6 +196,15 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const toggleTag = (tag: string) => {
+    const exists = tags.some(t => t.toLowerCase() === tag.toLowerCase());
+    if (exists) {
+      setTags(prev => prev.filter(t => t.toLowerCase() !== tag.toLowerCase()));
+      return;
+    }
+    setTags(prev => [...prev, tag]);
   };
 
   const handleGenerateMeta = async () => {
@@ -390,8 +410,33 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
                   className={`w-full px-3 py-2 rounded-lg border outline-none text-sm ${inputClass}`}
                 />
               </div>
-               <div>
+              <div>
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-60 mb-1">{dict.tags}</label>
+                {availableTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {availableTags.map(tag => {
+                      const selected = tags.some(t => t.toLowerCase() === tag.toLowerCase());
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={`px-2 py-1 rounded-full text-xs font-medium border transition-colors ${
+                            selected
+                              ? (theme === 'dark'
+                                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                                  : 'bg-blue-50 text-blue-600 border-blue-100')
+                              : (theme === 'dark'
+                                  ? 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100')
+                          }`}
+                        >
+                          #{tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2 mb-2">
                   {tags.map(tag => (
                     <span key={tag} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${

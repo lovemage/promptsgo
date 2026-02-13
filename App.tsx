@@ -821,11 +821,14 @@ function App() {
           {/* Global Prompts Item */}
           <button
             onClick={() => setCurrentView('global')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all mb-2 ${activeView === 'global' ? styles.activeItem : styles.hoverItem
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeView === 'global' ? styles.activeItem : styles.hoverItem
               }`}
           >
             <Globe size={16} className="text-pink-500" />
-            {dict.globalPrompts}
+            <div className="flex-1 text-left">
+              <div>{dict.globalPrompts}</div>
+              <div className={`text-xs opacity-50 ${theme === 'binder' ? 'text-slate-400' : ''}`}>{dict.globalPromptsHint}</div>
+            </div>
           </button>
 
           {/* GP Collection Item */}
@@ -852,9 +855,9 @@ function App() {
               }`}
           >
             <LayoutGrid size={16} />
-            <div className="flex-1">
-              <div>{dict.myLibrary}</div>
-              <div className={`text-xs opacity-50 ${theme === 'binder' ? 'text-slate-400' : ''}`}>{dict.localPrompts}</div>
+            <div className="flex-1 text-left">
+              <div>{dict.localPrompts}</div>
+              <div className={`text-xs opacity-50 ${theme === 'binder' ? 'text-slate-400' : ''}`}>{dict.localPromptsHint}</div>
             </div>
             <span className="ml-auto text-xs opacity-50">{prompts.length}</span>
           </button>

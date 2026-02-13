@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-sitemap.js && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "import:global:zhTW": "node scripts/import-zhTW-prompts-to-global.js",
+    "import:global:zhTW:dry": "node scripts/import-zhTW-prompts-to-global.js --dry-run"
   },
   "dependencies": {
     "@google/genai": "^1.31.0",
