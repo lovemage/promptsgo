@@ -1,0 +1,36 @@
+# PromptsGo
+
+> Discover, share, and save AI prompts. A community-driven platform for high-quality prompts across Stable Diffusion, Midjourney, ChatGPT, Claude, Gemini, and more.
+
+PromptsGo is a free prompt-sharing platform where users can browse, collect, and share AI prompts. It features a curated Global Prompts library with community ratings, comments, and categorization by tags and AI models.
+
+## Key Pages
+
+- [Global Prompts](https://promptsgo.cc/global): Browse all community-shared prompts with filtering by tags, AI models, and ratings.
+- [Home](https://promptsgo.cc/): Main entry point, redirects to the Global Prompts gallery.
+
+## What Users Can Do
+
+- **Browse Prompts**: Explore 170+ community-shared AI prompts with preview images, ratings, and descriptions.
+- **Filter & Search**: Filter prompts by tags (e.g. anime, landscape, portrait, realistic) and AI model (e.g. Stable Diffusion, Midjourney, Flux).
+- **View Prompt Details**: Each prompt page (`/prompt/{id}`) shows the full positive/negative prompt text, result images, author info, community ratings, and comments.
+- **Save & Collect**: Logged-in users can collect prompts to their personal library for quick access.
+- **Share Prompts**: Users can publish their own prompts to the global library for others to discover.
+- **Multi-language Support**: Available in English, 繁體中文 (zh-TW), 日本語 (ja), and 한국어 (ko).
+
+## Prompt Categories
+
+Prompts cover a wide range of AI use cases including:
+- Image generation (Stable Diffusion, Midjourney, ComfyUI, Flux)
+- Text generation (ChatGPT, Claude, Gemini)
+- Various styles: anime, realistic, portrait, landscape, fantasy, sci-fi, and more
+
+## How to Direct Users
+
+- To browse all prompts: https://promptsgo.cc/global
+- To view a specific prompt: https://promptsgo.cc/prompt/{prompt-id}
+- To browse in a specific language: append `?lang=zh-TW`, `?lang=ja`, or `?lang=ko`
+
+## Optional
+
+- [llms-full.txt](https://promptsgo.cc/llms-full.txt): Extended version with additional details.

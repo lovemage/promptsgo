@@ -40,6 +40,24 @@
                     "value": "text/plain"
                 }
             ]
+        },
+        {
+            "source": "/llms.txt",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "text/plain; charset=utf-8"
+                }
+            ]
+        },
+        {
+            "source": "/llms-full.txt",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "text/plain; charset=utf-8"
+                }
+            ]
         }
     ],
     "rewrites": [
@@ -50,6 +68,47 @@
         {
             "source": "/robots.txt",
             "destination": "/robots.txt"
+        },
+        {
+            "source": "/llms.txt",
+            "destination": "/llms.txt"
+        },
+        {
+            "source": "/llms-full.txt",
+            "destination": "/llms-full.txt"
+        },
+        {
+            "source": "/prompt/:id",
+            "has": [
+                {
+                    "type": "header",
+                    "key": "user-agent",
+                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                }
+            ],
+            "destination": "/api/prerender?path=/prompt/:id"
+        },
+        {
+            "source": "/global",
+            "has": [
+                {
+                    "type": "header",
+                    "key": "user-agent",
+                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                }
+            ],
+            "destination": "/api/prerender?path=/global"
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "header",
+                    "key": "user-agent",
+                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                }
+            ],
+            "destination": "/api/prerender?path=/"
         },
         {
             "source": "/(.*)",
