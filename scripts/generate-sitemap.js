@@ -63,10 +63,17 @@ const generateSitemap = async () => {
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
+  const escapeXml = (value) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
   // Helper function to add URL
   const addUrl = (loc, lastmod, changefreq, priority) => {
     xml += '  <url>\n';
-    xml += `    <loc>${loc}</loc>\n`;
+    xml += `    <loc>${escapeXml(loc)}</loc>\n`;
     if (lastmod) {
       try {
         const date = new Date(lastmod);

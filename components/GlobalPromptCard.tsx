@@ -264,7 +264,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                 setActiveMediaIndex(0);
                 setShowGallery(true);
             }}
-            className="w-full h-48 overflow-hidden bg-gray-900 relative group cursor-pointer"
+            className="w-full h-[300px] overflow-hidden bg-gray-900 relative group cursor-pointer"
             onContextMenu={(e) => e.preventDefault()}
           >
              <img

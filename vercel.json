@@ -83,7 +83,7 @@
                 {
                     "type": "header",
                     "key": "user-agent",
-                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                    "value": "(?i).*(googlebot|google-inspectiontool|googleother|google-extended|adsbot-google|mediapartners-google|apis-google|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
                 }
             ],
             "destination": "/api/prerender?path=/prompt/:id"
@@ -94,7 +94,7 @@
                 {
                     "type": "header",
                     "key": "user-agent",
-                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                    "value": "(?i).*(googlebot|google-inspectiontool|googleother|google-extended|adsbot-google|mediapartners-google|apis-google|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
                 }
             ],
             "destination": "/api/prerender?path=/global"
@@ -105,7 +105,7 @@
                 {
                     "type": "header",
                     "key": "user-agent",
-                    "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
+                    "value": "(?i).*(googlebot|google-inspectiontool|googleother|google-extended|adsbot-google|mediapartners-google|apis-google|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slackbot|whatsapp|discord|pinterest).*"
                 }
             ],
             "destination": "/api/prerender?path=/"
