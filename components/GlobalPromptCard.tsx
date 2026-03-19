@@ -5,6 +5,7 @@ import { GlobalPrompt, Dictionary, ThemeId, Comment, User } from '../types';
 import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
 import { getEffectiveUserAvatar } from '../utils/avatarUtils';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface GlobalPromptCardProps {
   prompt: GlobalPrompt;
@@ -72,33 +73,9 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
   }, [prompt.id, user?.id]);
 
   const handleCopy = (text: string, type: string) => {
-    // Try modern clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).catch(() => {
-        // Fallback to old method if modern API fails
-        copyToClipboardFallback(text);
-      });
-    } else {
-      // Fallback for older browsers
-      copyToClipboardFallback(text);
-    }
+    copyToClipboard(text);
     setCopiedId(type);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const copyToClipboardFallback = (text: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-    document.body.removeChild(textarea);
   };
 
   const handleCommentMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,16 +208,7 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     setHasShared(true);
 
     if (platform === 'copy') {
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).catch(() => {
-          // Fallback to old method if modern API fails
-          copyToClipboardFallback(url);
-        });
-      } else {
-        // Fallback for older browsers
-        copyToClipboardFallback(url);
-      }
+      copyToClipboard(url);
       setCopiedId('share-link');
       setTimeout(() => setCopiedId(null), 2000);
     } else {
@@ -288,6 +256,9 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
           {/* Gallery Modal */}
           {showGallery && mediaList.length > 0 && (
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Media gallery"
               className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200"
               onClick={() => setShowGallery(false)}
             >
@@ -326,13 +297,15 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                     {/* Navigation Arrows */}
                     {mediaList.length > 1 && (
                         <>
-                            <button 
+                            <button
+                                aria-label="Previous media"
                                 onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => (prev - 1 + mediaList.length) % mediaList.length); }}
                                 className="absolute left-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
                             >
                                 <ChevronLeft size={24} />
                             </button>
-                            <button 
+                            <button
+                                aria-label="Next media"
                                 onClick={(e) => { e.stopPropagation(); setActiveMediaIndex(prev => (prev + 1) % mediaList.length); }}
                                 className="absolute right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
                             >
@@ -470,9 +443,10 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
             <div className={`relative p-3 rounded-lg text-xs font-mono border ${isDark ? 'bg-black/20 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
                <p className="line-clamp-4">{prompt.positive}</p>
                {user && (
-                 <button 
+                 <button
                     onClick={() => handleCopy(prompt.positive, 'pos')}
-                    className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors"
+                    aria-label={dict.copy}
+                    className={`absolute top-2 right-2 p-1.5 rounded transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-black/10 hover:bg-black/20'}`}
                   >
                     {copiedId === 'pos' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
                   </button>
@@ -545,14 +519,15 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                   <div className="relative group">
                      <button
                         onClick={() => onToggleCollect(prompt.id)}
+                        aria-label={isCollected ? 'Collected' : 'Collect'}
                         title={isCollected ? 'Collected' : 'Collect'}
                         className={`p-2 rounded-lg transition-all duration-200 ${
                            isCollected
                               ? 'bg-yellow-500/20 text-yellow-600 shadow-md shadow-yellow-500/30 hover:bg-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/40'
-                              : 'hover:bg-black/5 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                              : `${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-black/5 text-slate-600'}`
                         }`}
                      >
-                        <Bookmark size={16} className={isCollected ? "fill-yellow-600 animate-pulse" : ""} />
+                        <Bookmark size={16} className={isCollected ? "fill-yellow-600" : ""} />
                      </button>
                      {prompt.collectCount !== undefined && prompt.collectCount > 0 && (
                         <span className={`absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold transition-all ${
@@ -621,7 +596,8 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
                <button
                   onClick={() => setShowComments(!showComments)}
                   title={`${dict.comments}`}
-                  className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 ${showComments ? 'bg-blue-500/10 text-blue-500' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  aria-label={dict.comments}
+                  className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 ${showComments ? 'bg-blue-500/10 text-blue-500' : isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
                >
                   <MessageSquare size={16} />
                   {prompt.comments.length > 0 && <span className="text-xs font-semibold">{prompt.comments.length}</span>}
@@ -776,6 +752,9 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
          {/* Comment Media Preview Modal */}
          {commentMediaModal && (
             <div
+               role="dialog"
+               aria-modal="true"
+               aria-label="Comment media preview"
                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
                onClick={() => setCommentMediaModal(null)}
             >

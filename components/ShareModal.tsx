@@ -278,7 +278,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
     } catch (error) {
         console.error('Upload failed:', error);
-        alert('Upload failed. Saving with previews/placeholders.');
+        alert(dict.uploadFailed);
     }
 
     const effectiveAvatar = getEffectiveUserAvatar(user);
@@ -303,7 +303,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     try {
       if (isEditingGlobalPrompt && globalPromptId) {
         await updatePrompt({ ...promptData, id: globalPromptId } as GlobalPrompt);
-        alert('Updated Global Prompt!');
+        alert(`✅ ${dict.updatedGlobalPrompt}`);
       } else {
         await sharePrompt({ 
             ...promptData, 
@@ -314,14 +314,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             views: 0, 
             createdAt: Date.now() 
         } as GlobalPrompt);
-        alert('Published to Global Prompts!');
+        alert(`✅ ${dict.publishedToGlobal}`);
       }
 
       if (onSuccess) onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Failed to save prompt:', error);
-      alert(`Failed to save prompt: ${error.message || 'Unknown error'}`);
+      alert(`${dict.saveFailed}: ${error.message || 'Unknown error'}`);
     } finally {
       setIsUploading(false);
     }
@@ -352,7 +352,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${bgClass}`}>
+      <div role="dialog" aria-modal="true" aria-label={dict.shareToGlobal} className={`w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${bgClass}`}>
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-500/10">
@@ -360,7 +360,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
             <Globe className="text-blue-500" size={24} />
             <h2 className="text-xl font-bold">{dict.shareToGlobal}</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onClose} aria-label={dict.cancel} className={`p-2 rounded-full transition-colors ${theme === 'dark' || theme === 'binder' ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
             <X size={20} />
           </button>
         </div>
@@ -384,7 +384,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
                         <span className="animate-pulse">{dict.refining}</span>
                       ) : (
                         <>
-                          <Sparkles size={12} /> AI 生成標題/描述
+                          <Sparkles size={12} /> {dict.aiGenerateMeta}
                         </>
                       )}
                     </button>
@@ -587,7 +587,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
           <button
             onClick={onClose}
             disabled={isUploading}
-            className="px-5 py-2 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+            className={`px-5 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${theme === 'dark' || theme === 'binder' ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
           >
             {dict.cancel}
           </button>

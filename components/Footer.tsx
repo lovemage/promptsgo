@@ -38,7 +38,7 @@ const Footer: React.FC<FooterProps> = ({ theme, dict, onOpenTerms, onOpenPrivacy
           </button>
         </div>
         <div className={`text-[10px] opacity-50 ${copyrightClass}`}>
-          © 2025 PromptsGo
+          © {new Date().getFullYear()} PromptsGo
         </div>
       </div>
     </footer>

@@ -58,7 +58,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
   if (banners.length === 0 && !isAdmin) return null;
 
   return (
-    <div className="relative w-full aspect-[16/5] overflow-hidden rounded-2xl shadow-xl group mb-6 bg-gray-100 dark:bg-gray-800">
+    <div role="region" aria-label="Banner carousel" className="relative w-full aspect-[16/5] overflow-hidden rounded-2xl shadow-xl group mb-6 bg-gray-100 dark:bg-gray-800">
       {/* Slides */}
       {banners.length > 0 ? (
         banners.map((banner, index) => (
@@ -68,7 +68,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
               index === activeIndex ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <img src={banner.url} alt="Banner" className="w-full h-full object-cover" />
+            <img src={banner.url} alt={`Banner ${index + 1}`} className="w-full h-full object-cover" />
           </div>
         ))
       ) : (
@@ -80,15 +80,17 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
       {/* Navigation */}
       {banners.length > 1 && (
         <>
-          <button 
+          <button
              onClick={() => setActiveIndex(prev => (prev - 1 + banners.length) % banners.length)}
              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+             aria-label="Previous slide"
           >
              <ChevronLeft size={24} />
           </button>
-          <button 
+          <button
              onClick={() => setActiveIndex(prev => (prev + 1) % banners.length)}
              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+             aria-label="Next slide"
           >
              <ChevronRight size={24} />
           </button>
@@ -99,6 +101,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
               <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
                 className={`w-2 h-2 rounded-full transition-all ${
                   idx === activeIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
                 }`}
@@ -113,16 +116,16 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
         <div className="absolute top-4 right-4 flex gap-2">
            {isEditing ? (
               <div className="flex gap-2 bg-black/50 p-2 rounded-lg backdrop-blur-sm animate-in fade-in">
-                 <label className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded cursor-pointer relative overflow-hidden">
+                 <label aria-label="Upload banner" className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded cursor-pointer relative overflow-hidden">
                     {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                     <input type="file" accept="image/*" onChange={handleUpload} className="absolute inset-0 opacity-0 cursor-pointer" disabled={isUploading} />
                  </label>
                  {banners.length > 0 && (
-                    <button onClick={() => handleDelete(banners[activeIndex].id)} className="p-2 bg-red-600 hover:bg-red-500 text-white rounded">
+                    <button onClick={() => handleDelete(banners[activeIndex].id)} aria-label="Delete banner" className="p-2 bg-red-600 hover:bg-red-500 text-white rounded">
                        <Trash2 size={16} />
                     </button>
                  )}
-                 <button onClick={() => setIsEditing(false)} className="p-2 bg-gray-600 hover:bg-gray-500 text-white rounded">
+                 <button onClick={() => setIsEditing(false)} aria-label="Stop editing" className="p-2 bg-gray-600 hover:bg-gray-500 text-white rounded">
                     <Save size={16} />
                  </button>
               </div>

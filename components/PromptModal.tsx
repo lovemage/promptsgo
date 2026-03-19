@@ -147,12 +147,12 @@ const PromptModal: React.FC<PromptModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${bgClass}`}>
+      <div role="dialog" aria-modal="true" aria-label={initialPrompt ? dict.edit : dict.newPrompt} className={`w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${bgClass}`}>
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-500/10">
           <h2 className="text-xl font-semibold">{initialPrompt ? dict.edit : dict.newPrompt}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onClose} aria-label={dict.cancel} className={`p-2 rounded-full transition-colors ${theme === 'dark' || theme === 'binder' ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}>
             <X size={20} />
           </button>
         </div>
@@ -311,7 +311,7 @@ const PromptModal: React.FC<PromptModalProps> = ({
         <div className="p-6 border-t border-gray-500/10 flex justify-end gap-3">
           <button 
             onClick={onClose}
-            className={`px-5 py-2 rounded-lg font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5`}
+            className={`px-5 py-2 rounded-lg font-medium transition-colors ${theme === 'dark' || theme === 'binder' ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
           >
             {dict.cancel}
           </button>

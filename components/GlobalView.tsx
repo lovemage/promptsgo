@@ -166,7 +166,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                               'bg-slate-100 border-transparent focus:bg-white focus:border-slate-300 text-slate-700'
                            }`}
                      >
-                        <option value="All">All Models</option>
+                        <option value="All">{dict.allModels}</option>
                         {availableModels.map(model => (
                            <option key={model} value={model}>{model}</option>
                         ))}
@@ -214,7 +214,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
             {/* Model Filter Row */}
             {activeModel !== 'All' && (
                <div className="flex items-center gap-2 text-xs">
-                  <span className={`opacity-60 ${theme === 'binder' ? 'text-slate-400' : ''}`}>Active Model Filter:</span>
+                  <span className={`opacity-60 ${theme === 'binder' ? 'text-slate-400' : ''}`}>{dict.activeModelFilter}</span>
                   <span className={`px-3 py-1 rounded-full font-medium ${theme === 'journal' ? 'bg-[#80c63c]/20 text-[#80c63c]' : theme === 'binder' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500/20 text-blue-600'}`}>
                      {activeModel}
                   </span>
@@ -222,7 +222,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                      onClick={() => setActiveModel('All')}
                      className={`text-xs opacity-60 hover:opacity-100 transition-opacity ${theme === 'binder' ? 'text-slate-400' : ''}`}
                   >
-                     Clear
+                     {dict.clear}
                   </button>
                </div>
             )}
@@ -235,7 +235,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
             {filteredPrompts.length === 0 ? (
                <div className="h-full flex flex-col items-center justify-center opacity-40">
                   <LayoutGrid size={48} strokeWidth={1} />
-                  <p className="mt-4 text-sm font-medium">No global prompts found.</p>
+                  <p className="mt-4 text-sm font-medium">{dict.noGlobalPrompts}</p>
                </div>
             ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-20">
@@ -267,6 +267,9 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
          {/* Detail Modal */}
          {selectedPrompt && (
             <div
+               role="dialog"
+               aria-modal="true"
+               aria-label={selectedPrompt.title}
                className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
                onClick={() => {
                   setSelectedPrompt(null);
@@ -282,6 +285,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ user, dict, theme, language, vi
                         setSelectedPrompt(null);
                         onClosePrompt?.();
                      }}
+                     aria-label="Close"
                      className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
                   >
                      <X size={20} />

@@ -159,6 +159,22 @@ export interface Dictionary {
 
   upgradeGuide: string;
   upgradeGuideTitle: string;
+
+  collectedToLocal: string;
+  deletedPrompt: string;
+  deleteFailed: string;
+  updatedGlobalPrompt: string;
+  publishedToGlobal: string;
+  uploadFailed: string;
+  saveFailed: string;
+  aiGenerateMeta: string;
+  reply: string;
+  post: string;
+  replyPlaceholder: string;
+  noGlobalPrompts: string;
+  allModels: string;
+  clear: string;
+  activeModelFilter: string;
 }
 
 export interface AppState {

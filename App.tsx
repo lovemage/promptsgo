@@ -15,6 +15,7 @@ import { TRANSLATIONS, DEFAULT_CATEGORIES } from './constants';
 import { loadState, saveState, loadRemoteState, saveRemoteState, generateId } from './services/storageService';
 import { signInWithGoogle, signOut, onAuthStateChanged } from './services/authService';
 import { updateUserAvatarUrl } from './services/authService';
+import { copyToClipboard } from './utils/clipboard';
 import * as globalService from './services/globalService';
 import PromptModal from './components/PromptModal';
 import CategoryManager from './components/CategoryManager';
@@ -355,33 +356,9 @@ function App() {
   };
 
   const handleCopy = (text: string, uniqueId: string) => {
-    // Try modern clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).catch(() => {
-        // Fallback to old method if modern API fails
-        copyToClipboardFallback(text);
-      });
-    } else {
-      // Fallback for older browsers
-      copyToClipboardFallback(text);
-    }
+    copyToClipboard(text);
     setCopiedId(uniqueId);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const copyToClipboardFallback = (text: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-    document.body.removeChild(textarea);
   };
 
   const handleOpenEdit = (prompt: Prompt) => {
@@ -475,7 +452,7 @@ function App() {
 
     // Add to local prompts
     setPrompts(prev => [newPrompt, ...prev]);
-    alert(`✅ "${globalPrompt.title}" 已收藏到你的本地卡片！`);
+    alert(`✅ "${globalPrompt.title}" ${dict.collectedToLocal}`);
   };
 
   const handleEditGlobalPrompt = (globalPrompt: any) => {
@@ -510,10 +487,10 @@ function App() {
           setCurrentUserPromptCount(count);
         });
       }
-      alert('✅ 已刪除該卡片');
+      alert(`✅ ${dict.deletedPrompt}`);
     } catch (error) {
       console.error('Error deleting prompt:', error);
-      alert('❌ 刪除失敗');
+      alert(`❌ ${dict.deleteFailed}`);
     }
   };
 
@@ -760,7 +737,7 @@ function App() {
       {/* Mobile Header */}
       <div className={`md:hidden flex items-center justify-between p-4 border-b backdrop-blur-md z-40 sticky top-0 ${styles.header}`}>
         <div className="flex items-center gap-3">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} aria-label="Toggle sidebar" className={`p-2 -ml-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
             <Menu size={24} />
           </button>
           <div className="flex items-center gap-2">
@@ -783,7 +760,7 @@ function App() {
         <div className="p-6 hidden md:block">
           <h1 className="text-2xl font-bold flex items-center gap-3 select-none">
             <PromptsGoLogo className={`w-8 h-8 ${styles.logoColor}`} />
-            <span className={`${theme === 'light' || theme === 'dark' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent' : ''}`}>
+            <span className={`${theme === 'light' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent' : theme === 'dark' ? 'bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent' : ''}`}>
               {dict.appTitle}
             </span>
           </h1>
@@ -795,7 +772,7 @@ function App() {
             <PromptsGoLogo className={`w-6 h-6 ${styles.logoColor}`} />
             {dict.appTitle}
           </h1>
-          <button onClick={() => setIsSidebarOpen(false)} className="p-2 -mr-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+          <button onClick={() => setIsSidebarOpen(false)} aria-label="Close sidebar" className={`p-2 -mr-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
             <Menu size={20} />
           </button>
         </div>
@@ -980,7 +957,9 @@ function App() {
               <div>
                 <button
                   onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isLangMenuOpen ? 'bg-black/5 dark:bg-white/5' : ''}`}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isLangMenuOpen ? (isDark ? 'bg-white/5' : 'bg-black/5') : ''}`}
+                  aria-expanded={isLangMenuOpen}
+                  aria-haspopup="listbox"
                 >
                   <div className="flex items-center gap-3">
                     <Globe size={16} />
@@ -990,17 +969,19 @@ function App() {
                 </button>
 
                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isLangMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1">
+                  <div className="mt-1 ml-4 pl-4 border-l border-gray-500/20 space-y-1" role="listbox" aria-label={dict.language}>
                     {languages.map(lang => (
                       <button
                         key={lang.code}
+                        role="option"
+                        aria-selected={language === lang.code}
                         onClick={() => {
                           setLanguage(lang.code);
                           setIsLangMenuOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${language === lang.code
                           ? 'text-blue-500 bg-blue-500/10'
-                          : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                          : `${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} opacity-80 hover:opacity-100`
                           }`}
                       >
                         {lang.label}
@@ -1015,7 +996,9 @@ function App() {
               <div>
                 <button
                   onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isThemeMenuOpen ? 'bg-black/5 dark:bg-white/5' : ''}`}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${styles.hoverItem} ${isThemeMenuOpen ? (isDark ? 'bg-white/5' : 'bg-black/5') : ''}`}
+                  aria-expanded={isThemeMenuOpen}
+                  aria-haspopup="listbox"
                 >
                   <div className="flex items-center gap-3">
                     <PaletteIcon size={16} />
@@ -1054,8 +1037,8 @@ function App() {
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${theme === t.id
                             ? 'text-blue-500 bg-blue-500/10'
                             : isLocked
-                              ? 'opacity-70 text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
-                              : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                              ? `opacity-70 text-gray-400 ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} cursor-pointer`
+                              : `${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} opacity-80 hover:opacity-100`
                             }`}
                           title={isLocked ? `Share ${requiredCount} prompts to unlock` : ''}
                         >
@@ -1200,6 +1183,7 @@ function App() {
                             type="checkbox"
                             checked={selectedPromptIds.has(prompt.id)}
                             onChange={() => handleToggleSelectPrompt(prompt.id)}
+                            aria-label={`Select ${prompt.title}`}
                             className="mt-1.5 w-4 h-4 rounded cursor-pointer shrink-0"
                           />
                           <h3 className={`font-semibold text-lg leading-tight transition-colors ${theme === 'journal' ? 'group-hover:text-[#0c9e2d]' : 'group-hover:text-blue-500'}`}>
@@ -1289,6 +1273,7 @@ function App() {
                                   {prompt.note}
                                 </div>
                                 <button
+                                  aria-label={dict.note}
                                   className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 ${styles.hoverItem}`}
                                 >
                                   <StickyNote size={14} />
@@ -1303,6 +1288,7 @@ function App() {
                                 handleOpenEdit(prompt);
                               }}
                               className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 ${styles.hoverItem}`}
+                              aria-label={dict.edit}
                               title={dict.edit}
                             >
                               <Edit2 size={14} />
@@ -1314,7 +1300,8 @@ function App() {
                                 e.stopPropagation();
                                 handleDeletePrompt(prompt.id);
                               }}
-                              className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20`}
+                              className={`p-1.5 rounded-md transition-colors opacity-40 hover:opacity-100 hover:text-red-500 ${isDark ? 'hover:bg-red-900/20' : 'hover:bg-red-50'}`}
+                              aria-label={dict.delete}
                               title={dict.delete}
                             >
                               <Trash2 size={14} />
@@ -1327,7 +1314,8 @@ function App() {
                                 e.stopPropagation();
                                 handleOpenShare(prompt);
                               }}
-                              className={`p-1.5 rounded-md transition-colors opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 ${theme === 'journal' ? 'text-[#0c9e2d]' : 'text-blue-500'}`}
+                              className={`p-1.5 rounded-md transition-colors opacity-60 hover:opacity-100 ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} ${theme === 'journal' ? 'text-[#0c9e2d]' : 'text-blue-500'}`}
+                              aria-label={dict.share}
                               title={dict.share}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M340-320h300q50 0 85-35t35-85q0-50-35-85t-85-35q-8-58-53-99t-101-41q-51 0-92.5 26T332-600q-57 5-94.5 43.5T200-460q0 58 41 99t99 41Zm0-80q-25 0-42.5-17.5T280-460q0-25 17.5-42.5T340-520h60v-20q0-33 23.5-56.5T480-620q33 0 56.5 23.5T560-540v60h80q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400H340ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" /></svg>

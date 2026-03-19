@@ -14,7 +14,31 @@ const WebViewWarning: React.FC<WebViewWarningProps> = ({ dict, theme, webViewTyp
   const websiteUrl = 'https://promptsgo.cc/';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(websiteUrl);
+    const doCopy = () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(websiteUrl).catch(() => {
+          // Fallback
+          const textarea = document.createElement('textarea');
+          textarea.value = websiteUrl;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          try { document.execCommand('copy'); } catch {}
+          document.body.removeChild(textarea);
+        });
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = websiteUrl;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand('copy'); } catch {}
+        document.body.removeChild(textarea);
+      }
+    };
+    doCopy();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
