@@ -130,9 +130,8 @@ interface Category {
 
 | 服務 | 用途 |
 |------|------|
-| **Supabase** | 資料庫、身份驗證、即時訂閱 |
+| **Supabase** | 資料庫、身份驗證、即時訂閱、媒體儲存 |
 | **Google OAuth** | 社群登入 |
-| **Cloudinary** | 圖片/影片上傳與存儲 |
 | **Gemini API** | AI 優化提示詞 |
 
 ### 目錄結構
@@ -165,9 +164,9 @@ promptsgo/
 │
 ├── services/            # 服務層
 │   ├── authService.ts         # 身份驗證服務
-│   ├── cloudinaryService.ts   # 圖片上傳服務
 │   ├── geminiService.ts       # AI 服務
 │   ├── globalService.ts       # 全球提示詞 CRUD
+│   ├── mediaStorageService.ts # Supabase 媒體上傳服務
 │   ├── nicknameService.ts     # 暱稱服務
 │   ├── storageService.ts      # 本地/雲端存儲服務
 │   └── supabaseClient.ts      # Supabase 客戶端
@@ -303,7 +302,7 @@ PromptsGo 採用**基於貢獻的升級系統**，用戶透過分享提示詞來
 
 - **解鎖條件**：Level 5+（星級創作者）
 - 可上傳自訂圖片作為頭像
-- 需要配置 Cloudinary 服務
+- 需要配置 Supabase Storage 的 `media` Bucket
 
 #### 4. 暱稱系統
 
@@ -523,9 +522,6 @@ export const generateShareMetaWithAI = async (prompt: Prompt): Promise<Generated
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
    VITE_GEMINI_API_KEY=your-gemini-api-key
-   VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
-   VITE_CLOUDINARY_API_KEY=your-api-key
-   VITE_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
    ```
 
 3. **啟動開發伺服器**：
@@ -629,7 +625,7 @@ A: 分享更多提示詞到 Global Prompts 即可解鎖。
 ```
 前端：React 18 + TypeScript + Tailwind CSS + Vite
 後端：Supabase（PostgreSQL + Auth + Storage）
-第三方：Google OAuth / Cloudinary / Gemini API
+第三方：Google OAuth / Gemini API
 部署：Vercel
 ```
 

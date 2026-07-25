@@ -6,6 +6,7 @@ import { generateId } from '../services/storageService';
 import * as globalService from '../services/globalService';
 import { getEffectiveUserAvatar } from '../utils/avatarUtils';
 import { copyToClipboard } from '../utils/clipboard';
+import { uploadMedia } from '../services/mediaStorageService';
 
 interface GlobalPromptCardProps {
   prompt: GlobalPrompt;
@@ -106,22 +107,6 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
     setCommentMediaPreview(null);
   };
 
-  const uploadMediaToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'promptsgo');
-
-    const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
-    const response = await fetch(`https://api.cloudinary.com/v1_1/dtwacse1e/${resourceType}/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Upload failed');
-    const data = await response.json();
-    return data.secure_url;
-  };
-
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
 
@@ -134,7 +119,8 @@ const GlobalPromptCard: React.FC<GlobalPromptCardProps> = ({ prompt: initialProm
       // Upload media if exists
       let mediaUrl: string | null = null;
       if (commentMediaFile) {
-        mediaUrl = await uploadMediaToCloudinary(commentMediaFile);
+        const result = await uploadMedia(commentMediaFile, 'comments');
+        mediaUrl = result.publicUrl;
       }
 
       const comment: Comment = {

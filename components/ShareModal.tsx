@@ -4,7 +4,7 @@ import { X, Globe, Upload, Image as ImageIcon, Loader2, Plus, Video as VideoIcon
 import { Prompt, GlobalPrompt, Dictionary, User, ThemeId } from '../types';
 import { sharePrompt, updatePrompt, getUniqueModelTags, getUniqueTags } from '../services/globalService';
 import { generateId } from '../services/storageService';
-import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
+import { uploadMedia } from '../services/mediaStorageService';
 import { getEffectiveUserAvatar } from '../utils/avatarUtils';
 import { generateShareMetaWithAI } from '../services/geminiService';
 
@@ -228,57 +228,33 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onSuccess, pro
     const effectiveTitle = title;
     const effectiveDescription = description;
 
-    let imageUrl = imagePreview || undefined;
-    let videoUrl = videoPreview || undefined;
-    let componentUrls = [...componentPreviews];
-
-    // Helper for upload
-    const upload = async (file: File) => {
-        if (!isCloudinaryConfigured()) return null; // Fallback handled by preview logic
-        const res = await uploadImage(file);
-        return res.secure_url;
-    };
+    let imageUrl = imagePreview?.startsWith('http') ? imagePreview : undefined;
+    let videoUrl = videoPreview?.startsWith('http') ? videoPreview : undefined;
+    let componentUrls = componentPreviews.filter(preview => preview.startsWith('http'));
 
     try {
-        // Upload Result Image
         if (imageFile) {
-            const url = await upload(imageFile);
-            if (url) imageUrl = url;
+            const result = await uploadMedia(imageFile, 'prompts');
+            imageUrl = result.publicUrl;
         }
 
-        // Upload Video
         if (videoFile) {
-            const url = await upload(videoFile);
-            if (url) videoUrl = url;
+            const result = await uploadMedia(videoFile, 'prompts');
+            videoUrl = result.publicUrl;
         }
 
-        // Upload Component Images (Replace file placeholders in array? No, handle separately)
-        // We assume previews contain old URLs if editing. New files need upload.
-        // Simplified: Upload new files, then merge with existing URLs (if editing).
-        // Since componentPreviews has mix of base64 and URLs, we need to replace base64 with uploaded URLs.
-        
         const newComponentUrls: string[] = [];
-        if (isCloudinaryConfigured()) {
-            for (const file of componentFiles) {
-                const url = await upload(file);
-                if (url) newComponentUrls.push(url);
-            }
+        for (const file of componentFiles) {
+            const result = await uploadMedia(file, 'prompts');
+            newComponentUrls.push(result.publicUrl);
         }
-        
-        // Mix: If editing, we might have kept old URLs.
-        // If not Cloudinary, we use base64.
-        if (isCloudinaryConfigured()) {
-             // Keep old URLs (filter out base64s from previews)
-             const oldUrls = componentPreviews.filter(p => p.startsWith('http'));
-             componentUrls = [...oldUrls, ...newComponentUrls];
-        } else {
-             // Use previews (base64)
-             componentUrls = componentPreviews;
-        }
+        componentUrls = [...componentUrls, ...newComponentUrls];
 
     } catch (error) {
         console.error('Upload failed:', error);
         alert(dict.uploadFailed);
+        setIsUploading(false);
+        return;
     }
 
     const effectiveAvatar = getEffectiveUserAvatar(user);

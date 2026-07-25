@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Edit, Save, Loader2 } from 'lucide-react';
-import { uploadImage } from '../services/cloudinaryService';
+import { uploadImage } from '../services/mediaStorageService';
 import * as globalService from '../services/globalService';
 
 interface HeroCarouselProps {
@@ -37,8 +37,8 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ isAdmin }) => {
 
     setIsUploading(true);
     try {
-      const res = await uploadImage(file);
-      await globalService.addBanner(res.secure_url);
+      const result = await uploadImage(file, 'banners');
+      await globalService.addBanner(result.publicUrl);
       await loadBanners();
     } catch (error) {
       console.error("Upload failed", error);

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { X, Lock, Upload } from 'lucide-react';
 import { Dictionary, ThemeId } from '../types';
 import { buildDefaultAvatarList, isDefaultAvatarUnlocked } from '../utils/avatarUtils';
-import { uploadImage, isCloudinaryConfigured } from '../services/cloudinaryService';
+import { uploadImage, isMediaStorageConfigured } from '../services/mediaStorageService';
 
 interface AvatarPickerModalProps {
   isOpen: boolean;
@@ -44,17 +44,15 @@ const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
       return;
     }
 
-    if (!isCloudinaryConfigured()) {
+    if (!isMediaStorageConfigured()) {
       alert(dict.avatarUploadNotConfigured);
       return;
     }
 
     setIsUploading(true);
     try {
-      const res = await uploadImage(file);
-      if (res?.secure_url) {
-        onSelectAvatar(res.secure_url);
-      }
+      const result = await uploadImage(file, 'avatars');
+      onSelectAvatar(result.publicUrl);
     } catch {
       alert(dict.avatarUploadFailed);
     } finally {
